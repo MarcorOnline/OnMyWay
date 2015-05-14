@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">OnMyWay</string>
+
+    <string name="add">Add</string>
+
+    <string name="minutes_lower">minutes</string>
+</resources>
