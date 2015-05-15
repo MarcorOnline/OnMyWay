@@ -1,5 +1,7 @@
 package com.marco.onmyway.model;
 
+import com.marco.onmyway.ServiceGateway;
+
 import java.util.ArrayList;
 
 /**
@@ -12,6 +14,8 @@ public class GlobalData {
 
     private static Appointment currentAppointment;
 
+
+    //GET SET
     public static ArrayList<AppointmentBase> getAppointments() {
         return appointments;
     }
@@ -34,5 +38,16 @@ public class GlobalData {
 
     public static void setLoggedUser(User loggedUser) {
         GlobalData.loggedUser = loggedUser;
+    }
+    //GET SET
+
+    public static AppointmentBase updateCurrentAppointment(String id)
+    {
+        if(currentAppointment == null || !currentAppointment.getId().equals(id))
+        {
+            currentAppointment = ServiceGateway.GetFullAppointment(id);
+        }
+
+        return currentAppointment;
     }
 }

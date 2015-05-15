@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -48,6 +49,16 @@ public class MainActivity extends ActionBarActivity {
         ListView lv = (ListView) findViewById(R.id.appointmentsList);
         appointmentsAdapter = new AppointmentsAdapter(this, GlobalData.getAppointments());
         lv.setAdapter(appointmentsAdapter);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                Intent inte = new Intent(getApplicationContext(), MapActivity.class);
+                inte.putExtra("appointmentId", appointmentsAdapter.appointments.get(i).getId());
+                startActivity(inte);
+            }
+        });
     }
 
     @Override

@@ -26,8 +26,17 @@ public class ServiceGateway {
     // api/appointments/base/get
     public static ArrayList<AppointmentBase> GetAppointmentsPreview(String phoneNumber)
     {
-        //TODO
-        return new ArrayList<>();
+        ArrayList<AppointmentBase> toReturn = new ArrayList();
+
+        AppointmentBase app;
+        for(int i = 1; i <= 10; i++)
+        {
+            app = new AppointmentBase();
+            app.setTitle("Appuntamento " + i);
+            toReturn.add(app);
+        }
+
+        return toReturn;
     }
 
     // api/appointments/add
