@@ -1,20 +1,20 @@
 package com.marco.onmyway.model;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
  * Created by Marco on 14/05/2015.
  */
 public class AppointmentBase {
+    private String id;
     private String title;
     private Location location;
-    private Calendar startTime;
-    private Calendar trackTime;
+    private Calendar startDateTime;
+    private Calendar trackingDateTime;
 
     public AppointmentBase(){
-        startTime = Calendar.getInstance();
-        trackTime = Calendar.getInstance();
+        startDateTime = Calendar.getInstance();
+        trackingDateTime = Calendar.getInstance();
         location = new Location();
     }
 
@@ -26,20 +26,20 @@ public class AppointmentBase {
         this.title = title;
     }
 
-    public Calendar getTrackTime() {
-        return trackTime;
+    public Calendar getTrackingDateTime() {
+        return trackingDateTime;
     }
 
-    public void setTrackTime(Calendar dateTime) {
-        this.trackTime = dateTime;
+    public void setTrackingDateTime(Calendar dateTime) {
+        this.trackingDateTime = dateTime;
     }
 
-    public Calendar getStartTime() {
-        return startTime;
+    public Calendar getStartDateTime() {
+        return startDateTime;
     }
 
-    public void setStartTime(Calendar dateTime) {
-        this.startTime = dateTime;
+    public void setStartDateTime(Calendar dateTime) {
+        this.startDateTime = dateTime;
     }
 
     public Location getLocation() {

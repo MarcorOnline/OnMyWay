@@ -3,7 +3,7 @@
 
     <string name="title">Title</string>
     <string name="location">Location</string>
-    <string name="dateAndTime">Date and Time</string>
+    <string name="appointmentDateAndTime">Date and time of the appointment</string>
     <string name="startLocalizationAt">Start localization at</string>
     <string name="invitedFriends">Invited friends</string>
     <string name="confirm">Confirm</string>

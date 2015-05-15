@@ -1,7 +1,11 @@
 package com.marco.onmyway;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
@@ -16,36 +20,35 @@ import android.widget.TextView;
 
 import com.marco.onmyway.model.AppointmentBase;
 import com.marco.onmyway.model.GlobalData;
+import com.marco.onmyway.model.User;
 
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
+
+    private View normalView;
+    private View progressView;
+
+    private LoginTask loginTask;
+    private GetAppointmentsTask getAppointmentsTask;
+    private AppointmentsAdapter appointmentsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        progressView = findViewById(R.id.progress);
+        normalView = findViewById(R.id.appointmentsList);
+
+        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         String phoneNumber = tm.getLine1Number();
+        autoLogin(phoneNumber);
 
-        //TODO usare phoneNumber per l'autoregistrazione dell'utente
-
-        ListView lv = (ListView)findViewById(R.id.appointmentsList);
-
-        //TODO: eliminare e scaricare dal server
-        AppointmentBase a;
-        for (int i=0; i<10; i++)
-        {
-            a = new AppointmentBase();
-            a.setTitle("Appuntamento di prova " + i);
-            GlobalData.getAppointments().add(a);
-        }
-
-        AppointmentsAdapter adapter = new AppointmentsAdapter(this, GlobalData.getAppointments());
-        lv.setAdapter(adapter);
+        ListView lv = (ListView) findViewById(R.id.appointmentsList);
+        appointmentsAdapter = new AppointmentsAdapter(this, GlobalData.getAppointments());
+        lv.setAdapter(appointmentsAdapter);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -71,6 +74,62 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            normalView.setVisibility(show ? View.GONE : View.VISIBLE);
+            normalView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    normalView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            progressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            progressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            normalView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void autoLogin(String phoneNumber){
+
+        if (GlobalData.getLoggedUser() == null)
+        {
+            if(loginTask == null) {
+                loginTask = new LoginTask(phoneNumber);
+                loginTask.execute();
+            }
+        }
+        else {
+            downloadAppointments();
+        }
+    }
+
+    private void downloadAppointments()
+    {
+        User user = GlobalData.getLoggedUser();
+        if (user != null && getAppointmentsTask == null)
+        {
+            getAppointmentsTask = new GetAppointmentsTask(user.getId());
+            getAppointmentsTask.execute();
+        }
     }
 
     public class AppointmentsAdapter extends ArrayAdapter
@@ -104,6 +163,79 @@ public class MainActivity extends ActionBarActivity {
             //((TextView)convertView.findViewById(R.id.itemLocation)).setText(a.getLocation().toString());
 
             return convertView;
+        }
+    }
+
+    public class LoginTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final String phoneNumber;
+
+        LoginTask(String phoneNumber) {
+            this.phoneNumber = phoneNumber;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            showProgress(true);
+
+            User user = ServiceGateway.Login(phoneNumber);
+
+            if (user != null) {
+                GlobalData.setLoggedUser(user);
+                downloadAppointments();
+            }
+
+            return user != null;
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            loginTask = null;
+            showProgress(false);
+        }
+
+        @Override
+        protected void onCancelled() {
+            loginTask = null;
+            showProgress(false);
+        }
+    }
+
+    public class GetAppointmentsTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final String userId;
+
+        GetAppointmentsTask(String userId) {
+            this.userId = userId;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            showProgress(true);
+
+            ArrayList<AppointmentBase> freshAppointments = ServiceGateway.GetAppointmentsPreview(userId);
+
+            if (freshAppointments != null) {
+                ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
+                oldAppointments.clear();
+                oldAppointments.addAll(freshAppointments);
+
+                appointmentsAdapter.notifyDataSetChanged();
+            }
+
+            return freshAppointments != null;
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            getAppointmentsTask = null;
+            showProgress(false);
+        }
+
+        @Override
+        protected void onCancelled() {
+            getAppointmentsTask = null;
+            showProgress(false);
         }
     }
 }

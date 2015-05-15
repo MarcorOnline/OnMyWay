@@ -4,17 +4,23 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.app.TimePickerDialog;
 import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TimePicker;
 
 import com.marco.onmyway.model.Appointment;
 import com.marco.onmyway.model.AppointmentBase;
@@ -26,19 +32,26 @@ import java.util.List;
 
 public class NewAppointmentActivity extends ActionBarActivity {
 
+    public final static int MODE_START_DATETIME = 1;
+    public final static int MODE_TRACKING_DATETIME = 2;
+
     // UI references.
     private AutoCompleteTextView locationView;
     private EditText titleView;
-    private EditText dateView;
-    private EditText timeView;
-    private EditText trackingTimeView;
+
+    private static EditText dateView;
+    private static EditText timeView;
+
+    private static EditText trackingDateView;
+    private static EditText trackingTimeView;
+
     private View progressView;
-    private View formView;
+    private View normalView;
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
+    static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+    static SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
-    private Appointment newAppointment = new Appointment();
+    private static Appointment newAppointment = new Appointment();
 
     // Async Tasks
     private UploadAppointmentTask uploadTask;
@@ -49,75 +62,121 @@ public class NewAppointmentActivity extends ActionBarActivity {
         setContentView(R.layout.activity_new_appointment);
 
         //GET UI items
-
         locationView = (AutoCompleteTextView) findViewById(R.id.locationBox);
         populateAutoComplete();
 
         titleView = (EditText) findViewById(R.id.titleBox);
+
         timeView = (EditText) findViewById(R.id.timeBox);
         dateView = (EditText) findViewById(R.id.dateBox);
-        trackingTimeView = (EditText) findViewById(R.id.trackingTimeBox);
 
-        formView = findViewById(R.id.form);
+        trackingTimeView = (EditText) findViewById(R.id.trackingTimeBox);
+        trackingDateView = (EditText) findViewById(R.id.trackingDateBox);
+
+        normalView = findViewById(R.id.form);
         progressView = findViewById(R.id.progress);
 
-        dateView.setFocusable(false);
-        timeView.setFocusable(false);
+        Button addButton = (Button)findViewById(R.id.addButton);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addFriend();
+            }
+        });
 
         dateView.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
+                try{
+                    DialogFragment newFragment = new DatePickerFragment(MODE_START_DATETIME);
+                    newFragment.show(getFragmentManager(), "datePicker");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        timeView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    DialogFragment newFragment = new TimePickerFragment(MODE_START_DATETIME);
+                    newFragment.show(getFragmentManager(), "timePicker");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
-                                            DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
-                                                @Override
-                                                public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                                                    Calendar date = Calendar.getInstance();
-                                                    date.set(year, monthOfYear, dayOfMonth);
-                                                    setAppointmentDate(date);
-                                                }
-                                            };
+        trackingDateView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try{
+                    DialogFragment newFragment = new DatePickerFragment(MODE_TRACKING_DATETIME);
+                    newFragment.show(getFragmentManager(), "datePicker");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        trackingTimeView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    DialogFragment newFragment = new TimePickerFragment(MODE_TRACKING_DATETIME);
+                    newFragment.show(getFragmentManager(), "timePicker");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
-                                            Calendar date = newAppointment.getStartTime();
-                                            DatePickerDialog picker = new DatePickerDialog(getBaseContext(), listener,
-                                                    date.get(Calendar.YEAR),
-                                                    date.get(Calendar.MONTH),
-                                                    date.get(Calendar.DAY_OF_MONTH));
-                                        }
-                                    });
 
-        //pre-populate some items
+
+        //pre-populate tracking datetime
         Calendar now = Calendar.getInstance();
-        setAppointmentDate(now);
-        setAppointmentTrackingTime(now);
+        setTrackingDate(now);
+        setTrackingTime(now);
+
+        //pre-populate appointment datetime
         now.add(Calendar.MINUTE, 30);
+        setAppointmentDate(now);
         setAppointmentTime(now);
 
         //TODO: popolare mappa/location su posizione corrente
     }
 
-    private void setAppointmentDate(Calendar date)
+    private static void setAppointmentDate(Calendar date)
     {
         dateView.setText(dateFormat.format(date.getTime()));
 
-        newAppointment.getStartTime().set(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
+        Calendar startTime = newAppointment.getStartDateTime();
+        startTime.set(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
     }
 
-    private void setAppointmentTime(Calendar date)
+    private static void setAppointmentTime(Calendar time)
     {
-        timeView.setText(timeFormat.format(date.getTime()));
+        timeView.setText(timeFormat.format(time.getTime()));
 
-        Calendar startTime = newAppointment.getStartTime();
-        startTime.set(Calendar.HOUR, date.get(Calendar.HOUR));
-        startTime.set(Calendar.MINUTE, date.get(Calendar.MINUTE));
+        Calendar startTime = newAppointment.getStartDateTime();
+        startTime.set(Calendar.HOUR, time.get(Calendar.HOUR));
+        startTime.set(Calendar.MINUTE, time.get(Calendar.MINUTE));
     }
 
-    private void setAppointmentTrackingTime(Calendar date)
+    private static void setTrackingTime(Calendar time)
     {
-        trackingTimeView.setText(timeFormat.format(date.getTime()));
+        trackingTimeView.setText(timeFormat.format(time.getTime()));
 
-        Calendar trackingTime = newAppointment.getTrackTime();
-        trackingTime.set(Calendar.HOUR, date.get(Calendar.HOUR));
-        trackingTime.set(Calendar.MINUTE, date.get(Calendar.MINUTE));
+        Calendar trackingTime = newAppointment.getTrackingDateTime();
+        trackingTime.set(Calendar.HOUR, time.get(Calendar.HOUR));
+        trackingTime.set(Calendar.MINUTE, time.get(Calendar.MINUTE));
+    }
+
+    private static void setTrackingDate(Calendar date)
+    {
+        trackingDateView.setText(dateFormat.format(date.getTime()));
+
+        Calendar trackingTime = newAppointment.getTrackingDateTime();
+        trackingTime.set(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH));
     }
 
     @Override
@@ -148,7 +207,7 @@ public class NewAppointmentActivity extends ActionBarActivity {
         //getLoaderManager().initLoader(0, null, this);
     }
 
-    public void addFriend(View button)
+    public void addFriend()
     {
         //TODO logica di aggiunta amici tramite picker rubrica
     }
@@ -165,15 +224,14 @@ public class NewAppointmentActivity extends ActionBarActivity {
 
         boolean uploadable = false;
 
-        //TODO logica di validazione e creazione oggetto
-        AppointmentBase a = new AppointmentBase();
+        //TODO logica di validazione di newAppointment
 
         if (uploadable)
         {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            uploadTask = new UploadAppointmentTask(a);
+            uploadTask = new UploadAppointmentTask(newAppointment);
             uploadTask.execute((Void) null);
         }
     }
@@ -189,12 +247,12 @@ public class NewAppointmentActivity extends ActionBarActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            formView.setVisibility(show ? View.GONE : View.VISIBLE);
-            formView.animate().setDuration(shortAnimTime).alpha(
+            normalView.setVisibility(show ? View.GONE : View.VISIBLE);
+            normalView.animate().setDuration(shortAnimTime).alpha(
                     show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    formView.setVisibility(show ? View.GONE : View.VISIBLE);
+                    normalView.setVisibility(show ? View.GONE : View.VISIBLE);
                 }
             });
 
@@ -210,7 +268,7 @@ public class NewAppointmentActivity extends ActionBarActivity {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
             progressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            formView.setVisibility(show ? View.GONE : View.VISIBLE);
+            normalView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 
@@ -223,10 +281,86 @@ public class NewAppointmentActivity extends ActionBarActivity {
         mEmailView.setAdapter(adapter);*/
     }
 
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
+
+        private int mode;
+
+        public DatePickerFragment(int mode) throws Exception {
+            if(mode != MODE_START_DATETIME && mode != MODE_TRACKING_DATETIME)
+                throw new Exception("invalid mode");
+
+            this.mode = mode;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Calendar date;
+            if(mode == MODE_START_DATETIME)
+                date = newAppointment.getStartDateTime();
+            else
+                date = newAppointment.getTrackingDateTime();
+
+            int year = date.get(Calendar.YEAR);
+            int month = date.get(Calendar.MONTH);
+            int day = date.get(Calendar.DAY_OF_MONTH);
+
+            // Create a new instance of DatePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            Calendar date = Calendar.getInstance();
+            date.set(year, month, day);
+
+            if(mode == MODE_START_DATETIME)
+                setAppointmentDate(date);
+            else
+                setTrackingDate(date);
+        }
+    }
+
+    public static class TimePickerFragment extends DialogFragment
+            implements TimePickerDialog.OnTimeSetListener {
+
+        private int mode;
+
+        public TimePickerFragment(int mode) throws Exception
+        {
+            if(mode != MODE_START_DATETIME && mode != MODE_TRACKING_DATETIME)
+                throw new Exception("invalid mode");
+
+            this.mode = mode;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Calendar date;
+            if(mode == MODE_START_DATETIME)
+                date = newAppointment.getStartDateTime();
+            else
+                date = newAppointment.getTrackingDateTime();
+
+            int hour = date.get(Calendar.HOUR);
+            int minute = date.get(Calendar.MINUTE);
+
+            // Create a new instance of DatePickerDialog and return it
+            return new TimePickerDialog(getActivity(), this, hour, minute,
+                    DateFormat.is24HourFormat(getActivity()));
+        }
+
+        public void onTimeSet(TimePicker view, int hour, int minute) {
+            Calendar date = Calendar.getInstance();
+            date.set(Calendar.HOUR, hour);
+            date.set(Calendar.MINUTE, minute);
+
+            if(mode == MODE_START_DATETIME)
+                setAppointmentTime(date);
+            else
+                setTrackingTime(date);
+        }
+    }
+
     public class UploadAppointmentTask extends AsyncTask<Void, Void, Boolean> {
 
         private final AppointmentBase appointment;

@@ -38,17 +38,19 @@
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/dateAndTime"/>
+                android:text="@string/appointmentDateAndTime"/>
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content">
 
                 <EditText android:id="@+id/dateBox"
+                    android:focusable="false"
                     android:layout_width="140dp"
                     android:layout_height="wrap_content" />
                 <EditText
                     android:id="@+id/timeBox"
+                    android:focusable="false"
                     android:layout_width="70dp"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -56,11 +58,22 @@
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/startLocalizationAt"/>
-            <EditText
-                android:id="@+id/trackingTimeBox"
-                android:layout_width="70dp"
-                android:layout_height="wrap_content" />
+                android:text="@string/startLocalizationAt" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
+
+                <EditText android:id="@+id/trackingDateBox"
+                    android:focusable="false"
+                    android:layout_width="140dp"
+                    android:layout_height="wrap_content"/>
+                <EditText
+                    android:id="@+id/trackingTimeBox"
+                    android:focusable="false"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -72,9 +85,10 @@
                     android:text="@string/invitedFriends"/>
 
                 <Button
+                    android:id="@+id/addButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:onClick="addFriend"/>
+                    android:text="ADD FRIEND" />
             </LinearLayout>
 
 
