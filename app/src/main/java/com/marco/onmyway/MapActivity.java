@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.marco.onmyway.model.GlobalData;
@@ -23,8 +24,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        MapFragment mapFragment = (MapFragment) getFragmentManager()
-                .findFragmentById(R.id.map);
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         appointmentId = getIntent().getStringExtra("appointmentId");
@@ -61,6 +61,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
     public void onMapReady(GoogleMap map) {
         map.addMarker(new MarkerOptions()
                 .position(new LatLng(0, 0))
-                .title("Marker"));
+                .title("Marker"))
+                .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.add));
     }
 }
