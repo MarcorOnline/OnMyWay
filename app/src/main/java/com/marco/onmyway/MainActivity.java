@@ -22,16 +22,22 @@ import android.widget.TextView;
 import com.marco.onmyway.model.AppointmentBase;
 import com.marco.onmyway.model.GlobalData;
 import com.marco.onmyway.model.User;
+import com.marco.onmyway.utils.ApiCallback;
+import com.marco.onmyway.utils.ServiceGateway;
 
 import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
+    //view to swap for progress ui
     private View normalView;
     private View progressView;
 
-    private LoginTask loginTask;
-    private GetAppointmentsTask getAppointmentsTask;
+    //to remember working tasks
+    private boolean loginTask = false;
+    private boolean getAppointmentsTask = false;
+
+    //adapter
     private AppointmentsAdapter appointmentsAdapter;
 
     @Override
@@ -49,11 +55,9 @@ public class MainActivity extends ActionBarActivity {
         ListView lv = (ListView) findViewById(R.id.appointmentsList);
         appointmentsAdapter = new AppointmentsAdapter(this, GlobalData.getAppointments());
         lv.setAdapter(appointmentsAdapter);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l)
-            {
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Intent inte = new Intent(getApplicationContext(), MapActivity.class);
                 inte.putExtra("appointmentId", appointmentsAdapter.appointments.get(i).getId());
                 startActivity(inte);
@@ -77,7 +81,6 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_add) {
-
             Intent i = new Intent(getApplicationContext(), NewAppointmentActivity.class);
             startActivity(i);
 
@@ -119,43 +122,67 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    private void autoLogin(String phoneNumber){
+    private void autoLogin(String phoneNumber) {
 
-        if (GlobalData.getLoggedUser() == null)
-        {
-            if(loginTask == null) {
-                loginTask = new LoginTask(phoneNumber);
-                loginTask.execute();
+        if (GlobalData.getLoggedUser() == null) {
+            if (!loginTask) {
+                loginTask = true;
+                showProgress(true);
+
+                ServiceGateway.LoginAsync(phoneNumber, new ApiCallback<User>() {
+                    @Override
+                    public void OnComplete(User result) {
+                        loginTask = false;
+                        showProgress(false);
+
+                        if (result != null) {
+                            GlobalData.setLoggedUser(result);
+                            downloadAppointments();
+                        }
+                    }
+                });
             }
-        }
-        else {
+        } else {
             downloadAppointments();
         }
     }
 
-    private void downloadAppointments()
-    {
+    private void downloadAppointments() {
         User user = GlobalData.getLoggedUser();
-        if (user != null && getAppointmentsTask == null)
-        {
-            getAppointmentsTask = new GetAppointmentsTask(user.getId());
-            getAppointmentsTask.execute();
+        if (user != null && !getAppointmentsTask) {
+            getAppointmentsTask = true;
+            showProgress(true);
+
+            ServiceGateway.GetAppointmentsPreviewAsync(user.getPhoneNumber(), new ApiCallback<ArrayList<AppointmentBase>>() {
+                @Override
+                public void OnComplete(ArrayList<AppointmentBase> result) {
+                    getAppointmentsTask = false;
+                    showProgress(false);
+
+                    if (result != null) {
+                        ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
+                        oldAppointments.clear();
+                        oldAppointments.addAll(result);
+
+                        appointmentsAdapter.notifyDataSetChanged();
+                    }
+                }
+            });
         }
     }
 
-    public class AppointmentsAdapter extends ArrayAdapter
-    {
+    public class AppointmentsAdapter extends ArrayAdapter {
         private LayoutInflater inflater;
         private Context context;
         private ArrayList<AppointmentBase> appointments;
 
-        public  AppointmentsAdapter(Context context, ArrayList<AppointmentBase> appointments){
+        public AppointmentsAdapter(Context context, ArrayList<AppointmentBase> appointments) {
             super(context, R.layout.appointment_list_item, appointments);
 
             this.context = context;
             this.appointments = appointments;
 
-            this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         @Override
@@ -165,88 +192,15 @@ public class MainActivity extends ActionBarActivity {
 
             AppointmentBase a = appointments.get(position);
 
-            ((TextView)convertView.findViewById(R.id.itemTitle)).setText(a.getTitle());
+            ((TextView) convertView.findViewById(R.id.itemTitle)).setText(a.getTitle());
 
-            ((TextView)convertView.findViewById(R.id.itemDateTime)).setText("data");
-            ((TextView)convertView.findViewById(R.id.itemLocation)).setText("location");
+            ((TextView) convertView.findViewById(R.id.itemDateTime)).setText("data");
+            ((TextView) convertView.findViewById(R.id.itemLocation)).setText("location");
 
             //((TextView)convertView.findViewById(R.id.itemDateTime)).setText(a.getDateTime().toString());
             //((TextView)convertView.findViewById(R.id.itemLocation)).setText(a.getLocation().toString());
 
             return convertView;
-        }
-    }
-
-    public class LoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String phoneNumber;
-
-        LoginTask(String phoneNumber) {
-            this.phoneNumber = phoneNumber;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            showProgress(true);
-
-            User user = ServiceGateway.Login(phoneNumber);
-
-            if (user != null) {
-                GlobalData.setLoggedUser(user);
-                downloadAppointments();
-            }
-
-            return user != null;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            loginTask = null;
-            showProgress(false);
-        }
-
-        @Override
-        protected void onCancelled() {
-            loginTask = null;
-            showProgress(false);
-        }
-    }
-
-    public class GetAppointmentsTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String userId;
-
-        GetAppointmentsTask(String userId) {
-            this.userId = userId;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            showProgress(true);
-
-            ArrayList<AppointmentBase> freshAppointments = ServiceGateway.GetAppointmentsPreview(userId);
-
-            if (freshAppointments != null) {
-                ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
-                oldAppointments.clear();
-                oldAppointments.addAll(freshAppointments);
-
-                appointmentsAdapter.notifyDataSetChanged();
-            }
-
-            return freshAppointments != null;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            getAppointmentsTask = null;
-            showProgress(false);
-        }
-
-        @Override
-        protected void onCancelled() {
-            getAppointmentsTask = null;
-            showProgress(false);
         }
     }
 }

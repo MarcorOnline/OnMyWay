@@ -1,6 +1,7 @@
 package com.marco.onmyway.model;
 
-import com.marco.onmyway.ServiceGateway;
+import com.marco.onmyway.utils.ApiCallback;
+import com.marco.onmyway.utils.ServiceGateway;
 
 import java.util.ArrayList;
 
@@ -12,9 +13,6 @@ public class GlobalData {
 
     private static ArrayList<AppointmentBase> appointments = new ArrayList<>();
 
-    private static Appointment currentAppointment;
-
-
     //GET SET
     public static ArrayList<AppointmentBase> getAppointments() {
         return appointments;
@@ -24,14 +22,6 @@ public class GlobalData {
         GlobalData.appointments = appointments;
     }
 
-    public static Appointment getCurrentAppointment() {
-        return currentAppointment;
-    }
-
-    public static void setCurrentAppointment(Appointment currentAppointment) {
-        GlobalData.currentAppointment = currentAppointment;
-    }
-
     public static User getLoggedUser() {
         return loggedUser;
     }
@@ -39,15 +29,5 @@ public class GlobalData {
     public static void setLoggedUser(User loggedUser) {
         GlobalData.loggedUser = loggedUser;
     }
-    //GET SET
 
-    public static AppointmentBase updateCurrentAppointment(String id)
-    {
-        if(currentAppointment == null || !currentAppointment.getId().equals(id))
-        {
-            currentAppointment = ServiceGateway.GetFullAppointment(id);
-        }
-
-        return currentAppointment;
-    }
 }

@@ -11,16 +11,20 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.marco.onmyway.model.Appointment;
 import com.marco.onmyway.model.GlobalData;
+import com.marco.onmyway.utils.ApiCallback;
+import com.marco.onmyway.utils.ServiceGateway;
 
 
 public class MapActivity extends ActionBarActivity  implements OnMapReadyCallback
 {
     private static String appointmentId;
 
+    private Appointment appointment;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
@@ -28,9 +32,15 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         appointmentId = getIntent().getStringExtra("appointmentId");
-        GlobalData.updateCurrentAppointment(appointmentId);
-    }
 
+        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>() {
+            @Override
+            public void OnComplete(Appointment result) {
+                appointment = result;
+                DrawOnMap(result);
+            }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -63,5 +73,13 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
                 .position(new LatLng(0, 0))
                 .title("Marker"))
                 .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.add));
+    }
+
+    private void DrawOnMap(Appointment appointment){
+        //disegnare sulla mappa
+    }
+
+    private void Refresh(){
+        //chiama ServiceGateway.GetUsersStatusAsync e poi chiama DrawOnMap
     }
 }
