@@ -1,19 +1,15 @@
 package com.onmyway.utils;
 
 import android.os.AsyncTask;
-import android.support.v4.app.NavUtils;
-
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
-import com.onmyway.model.*;
-
-import java.io.BufferedInputStream;
+import com.onmyway.model.Appointment;
+import com.onmyway.model.AppointmentBase;
+import com.onmyway.model.User;
+import com.onmyway.model.UserStatus;
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 
