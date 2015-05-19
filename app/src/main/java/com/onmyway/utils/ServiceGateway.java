@@ -129,7 +129,7 @@ public class ServiceGateway {
                 }*/
 
                 BufferedReader br = new BufferedReader(new InputStreamReader((con.getInputStream())));
-                result = (RestResponse<T>) new Gson().fromJson(br, deserializationClass);
+                result = (RestResponse<T>) new Gson().fromJson(br, new RestResponse<T>().getClass());
             } catch (Exception e) {
                 result = null;
             } finally {
