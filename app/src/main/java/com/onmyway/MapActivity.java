@@ -1,5 +1,6 @@
 package com.onmyway;
 
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -10,16 +11,23 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.onmyway.model.Appointment;
-import com.onmyway.model.GlobalData;
+import com.onmyway.model.User;
+import com.onmyway.model.UserStatus;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ServiceGateway;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class MapActivity extends ActionBarActivity  implements OnMapReadyCallback
 {
     private static String appointmentId;
+    private static GoogleMap map;
+    private static HashMap<String, Marker> markers = new HashMap<>();
 
     private Appointment appointment;
 
@@ -33,14 +41,18 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
 
         appointmentId = getIntent().getStringExtra("appointmentId");
 
-        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>() {
+        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>()
+        {
             @Override
-            public void OnComplete(Appointment result) {
-                result.calendarsFromStrings();
+            public void OnComplete(Appointment result)
+            {
                 appointment = result;
-                DrawOnMap(result);
+                InitMap(result);
             }
         });
+
+        mapUpdater = new Handler();
+        startRepeatingTask();
     }
 
     @Override
@@ -70,17 +82,74 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap map) {
-        map.addMarker(new MarkerOptions()
-                .position(new LatLng(0, 0))
-                .title("Marker"))
-                .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.add));
+        this.map = map;
+
+//        this.map.addMarker(new MarkerOptions()
+//                .position(new LatLng(0, 0))
+//                .title("Marker"))
+//                .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.Destination));
     }
 
-    private void DrawOnMap(Appointment appointment){
-        //disegnare sulla mappa
+    private void InitMap(Appointment appointment)
+    {
+        //È il primo draw, devo disegnare l'appuntamento
+        Marker appointMarker = map.addMarker(new MarkerOptions()
+                .position(new LatLng(appointment.getLocation().getLatitude(), appointment.getLocation().getLongitude()))
+                .title(appointment.getLocation().getTitle())
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination)));
+
+        markers.put(appointment.getId(), appointMarker);
+
+        Marker userMarker;
+        for (User user : appointment.getValidUsers())
+        {
+            //L'utente non ha un marker, lo creo
+            userMarker = map.addMarker(new MarkerOptions()
+                    .position(new LatLng(user.getLatitude(), user.getLongitude()))
+                    .title(user.getName())
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination))); //TODO avatar
+
+            markers.put(appointment.getId(), userMarker);
+        }
     }
 
-    private void Refresh(){
-        //chiama ServiceGateway.GetUsersStatusAsync e poi chiama DrawOnMap
+    private void Refresh()
+    {
+        ServiceGateway.GetUsersStatusAsync(appointmentId, new ApiCallback<ArrayList<UserStatus>>()
+        {
+            @Override
+            public void OnComplete(ArrayList<UserStatus> result)
+            {
+                Marker userMarker;
+
+                for(UserStatus user : result)
+                {
+                    //L'utente ha già un marker, lo aggiorno
+                    userMarker = markers.get(user.getPhoneNumber());
+                    userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude())); //TODO update status
+                }
+            }
+        });
+    }
+
+
+    private int mInterval = 3000; // aggiorna ogni 30 secondi
+    //private int mInterval = 30000; // aggiorna ogni 30 secondi
+    private Handler mapUpdater;
+
+    Runnable mStatusChecker = new Runnable() {
+        @Override
+        public void run() {
+            Refresh();
+            mapUpdater.postDelayed(mStatusChecker, mInterval);
+        }
+    };
+
+    void startRepeatingTask() {
+        mStatusChecker.run();
+    }
+
+    void stopRepeatingTask() {
+        mapUpdater.removeCallbacks(mStatusChecker);
     }
 }

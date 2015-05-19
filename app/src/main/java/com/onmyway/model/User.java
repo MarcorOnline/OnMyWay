@@ -5,7 +5,6 @@ package com.onmyway.model;
  */
 public class User extends UserStatus {
     private String name;
-    private String phoneNumber;
     private String avatar;
 
     public String getName() {
@@ -14,14 +13,6 @@ public class User extends UserStatus {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
     }
 
     public String getAvatar() {
