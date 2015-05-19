@@ -36,6 +36,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>() {
             @Override
             public void OnComplete(Appointment result) {
+                result.calendarsFromStrings();
                 appointment = result;
                 DrawOnMap(result);
             }

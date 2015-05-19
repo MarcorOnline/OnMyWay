@@ -1,5 +1,9 @@
 package com.onmyway.model;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
 import java.util.Calendar;
 
 /**
@@ -11,6 +15,9 @@ public class AppointmentBase {
     private Location location;
     private Calendar startDateTime;
     private Calendar trackingDateTime;
+
+    private String formattedstartDateTime;
+    private String formattedtrackingDateTime;
 
     public AppointmentBase(){
         startDateTime = Calendar.getInstance();
@@ -58,5 +65,22 @@ public class AppointmentBase {
 
     public void setLocation(Location location) {
         this.location = location;
+    }
+
+    public void calendarsFromStrings()
+    {
+        DateTime start = ISODateTimeFormat.dateTimeParser().parseDateTime(formattedstartDateTime);
+        DateTime tracking = ISODateTimeFormat.dateTimeParser().parseDateTime(formattedtrackingDateTime);
+
+        startDateTime = start.toCalendar(null);
+        trackingDateTime = tracking.toCalendar(null);
+    }
+
+    public void calendarsToStrings()
+    {
+        DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis();
+
+        formattedstartDateTime = formatter.print(new DateTime(startDateTime));
+        formattedtrackingDateTime = formatter.print(new DateTime(trackingDateTime));
     }
 }

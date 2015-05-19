@@ -160,6 +160,12 @@ public class MainActivity extends ActionBarActivity {
                     showProgress(false);
 
                     if (result != null) {
+                        for(AppointmentBase appointment : result)
+                        {
+                            //unformat dates
+                            appointment.calendarsFromStrings();
+                        }
+
                         ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
                         oldAppointments.clear();
                         oldAppointments.addAll(result);

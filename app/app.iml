@@ -96,8 +96,8 @@
     <orderEntry type="library" exported="" name="play-services-fitness-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-gcm-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-maps-7.3.0" level="project" />
-    <orderEntry type="library" exported="" name="play-services-analytics-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-cast-7.3.0" level="project" />
+    <orderEntry type="library" exported="" name="play-services-analytics-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.1.1" level="project" />
     <orderEntry type="library" exported="" name="play-services-appinvite-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-ads-7.3.0" level="project" />
@@ -106,6 +106,7 @@
     <orderEntry type="library" exported="" name="play-services-identity-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-wearable-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-nearby-7.3.0" level="project" />
+    <orderEntry type="library" exported="" name="joda-time-2.7" level="project" />
     <orderEntry type="library" exported="" name="play-services-safetynet-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-plus-7.3.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-22.1.1" level="project" />
