@@ -16,6 +16,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.onmyway.model.Appointment;
 import com.onmyway.model.User;
 import com.onmyway.model.UserStatus;
+import com.onmyway.responses.AppointmentResponse;
+import com.onmyway.responses.UsersStatusResponse;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ServiceGateway;
 
@@ -41,13 +43,13 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
 
         appointmentId = getIntent().getStringExtra("appointmentId");
 
-        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>()
+        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<AppointmentResponse>()
         {
             @Override
-            public void OnComplete(Appointment result)
+            public void OnComplete(AppointmentResponse result)
             {
-                appointment = (Appointment)result;
-                InitMap((Appointment)result);
+                appointment = result.Data;
+                InitMap(result.Data);
             }
         });
 
@@ -115,14 +117,14 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
 
     private void Refresh()
     {
-        ServiceGateway.GetUsersStatusAsync(appointmentId, new ApiCallback<ArrayList<UserStatus>>()
+        ServiceGateway.GetUsersStatusAsync(appointmentId, new ApiCallback<UsersStatusResponse>()
         {
             @Override
-            public void OnComplete(ArrayList<UserStatus> result)
+            public void OnComplete(UsersStatusResponse result)
             {
                 Marker userMarker;
 
-                for(UserStatus user : (ArrayList<UserStatus>)result)
+                for(UserStatus user : result.Data)
                 {
                     //L'utente ha gia un marker, lo aggiorno
                     userMarker = markers.get(user.getPhoneNumber());
@@ -133,7 +135,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
     }
 
 
-    private int mInterval = 3000; // aggiorna ogni 30 secondi
+    private int mInterval = 3000; // aggiorna ogni 3 secondi
     //private int mInterval = 30000; // aggiorna ogni 30 secondi
     private Handler mapUpdater;
 

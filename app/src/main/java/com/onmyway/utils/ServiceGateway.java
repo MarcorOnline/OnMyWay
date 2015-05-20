@@ -124,16 +124,14 @@ public class ServiceGateway {
 
         @Override
         protected Object doInBackground(Void... params) {
-            /*if(method == RestMethod.GET)
+            if(method == RestMethod.GET)
                 return executeGet();
-            else*/
+            else
                 return executePost();
         }
 
         private Object executeGet() {
             Object result;
-
-            //ClientRequest req = new ClientRequest(baseAPI);
 
             HttpURLConnection con = null;
             try {
@@ -158,8 +156,6 @@ public class ServiceGateway {
 
         private Object executePost() {
             Object result = null;
-
-            //ClientRequest req = new ClientRequest(baseAPI);
 
             HttpURLConnection con = null;
             try {

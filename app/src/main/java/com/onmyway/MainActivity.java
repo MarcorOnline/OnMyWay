@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.onmyway.model.AppointmentBase;
 import com.onmyway.model.GlobalData;
 import com.onmyway.model.User;
+import com.onmyway.responses.AppointmentsPreviewResponse;
 import com.onmyway.responses.UserResponse;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ServiceGateway;
@@ -136,9 +137,7 @@ public class MainActivity extends ActionBarActivity {
                         showProgress(false);
 
                         if (result != null) {
-                            User user = ((UserResponse)result).Data;
-
-                            GlobalData.setLoggedUser(user);
+                            GlobalData.setLoggedUser(result.Data);
                             downloadAppointments();
                         }
                     }
@@ -155,14 +154,14 @@ public class MainActivity extends ActionBarActivity {
             getAppointmentsTask = true;
             showProgress(true);
 
-            ServiceGateway.GetAppointmentsPreviewAsync(user.getPhoneNumber(), new ApiCallback<ArrayList<AppointmentBase>>() {
+            ServiceGateway.GetAppointmentsPreviewAsync(user.getPhoneNumber(), new ApiCallback<AppointmentsPreviewResponse>() {
                 @Override
-                public void OnComplete(ArrayList<AppointmentBase> result) {
+                public void OnComplete(AppointmentsPreviewResponse result) {
                     getAppointmentsTask = false;
                     showProgress(false);
 
                     if (result != null) {
-                        for(AppointmentBase appointment : (ArrayList<AppointmentBase>)result)
+                        for(AppointmentBase appointment : result.Data)
                         {
                             //unformat dates
                             appointment.calendarsFromStrings();
@@ -170,7 +169,7 @@ public class MainActivity extends ActionBarActivity {
 
                         ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
                         oldAppointments.clear();
-                        oldAppointments.addAll((ArrayList<AppointmentBase>)result);
+                        oldAppointments.addAll(result.Data);
 
                         appointmentsAdapter.notifyDataSetChanged();
                     }
