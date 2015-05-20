@@ -5,9 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.onmyway.model.*;
-import com.onmyway.responses.AppointmentResponse;
-import com.onmyway.responses.BooleanResponse;
-import com.onmyway.responses.UserResponse;
+import com.onmyway.responses.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -39,8 +37,8 @@ public class ServiceGateway {
     }
 
     // user/appointments
-    public static void GetAppointmentsPreviewAsync(String phoneNumber, ApiCallback<ArrayList<AppointmentBase>> apiCallback) {
-        new GetApiTask<ArrayList<AppointmentBase>>("user/appointments?phoneNumber=" + phoneNumber, apiCallback).execute();
+    public static void GetAppointmentsPreviewAsync(String phoneNumber, ApiCallback<AppointmentsPreviewResponse> apiCallback) {
+        new GetApiTask<ArrayList<AppointmentBase>>("user/appointments?phoneNumber=" + phoneNumber, apiCallback, AppointmentsPreviewResponse.class).execute();
     }
 
     // appointment/add
@@ -78,8 +76,8 @@ public class ServiceGateway {
     }
 
     // appointments/users/status
-    public static void GetUsersStatusAsync(String appointmentId, ApiCallback<ArrayList<UserStatus>> apiCallback) {
-        new GetApiTask<ArrayList<UserStatus>>("appointment/users/status?appointmentId=" + appointmentId, apiCallback).execute();
+    public static void GetUsersStatusAsync(String appointmentId, ApiCallback<UsersStatusResponse> apiCallback) {
+        new GetApiTask<ArrayList<UserStatus>>("appointment/users/status?appointmentId=" + appointmentId, apiCallback, UsersStatusResponse.class).execute();
     }
 
     // users/status
@@ -92,21 +90,12 @@ public class ServiceGateway {
     }
 
     private static class GetApiTask<T> extends ApiTask<T> {
-
-        public GetApiTask(String relativeUrl, ApiCallback apiCallback){
-            super(relativeUrl, RestMethod.GET, null, apiCallback, null);
-        }
         public GetApiTask(String relativeUrl, ApiCallback apiCallback, Class deserializationClass){
             super(relativeUrl, RestMethod.GET, null, apiCallback, deserializationClass);
         }
     }
 
     private static class PostApiTask<T> extends ApiTask<T> {
-
-        public PostApiTask(String relativeUrl, HashMap<String, String> postParams, ApiCallback apiCallback){
-            super(relativeUrl, RestMethod.POST, postParams, apiCallback, null);
-        }
-
         public PostApiTask(String relativeUrl, HashMap<String, String> postParams, ApiCallback apiCallback, Class deserializationClass){
             super(relativeUrl, RestMethod.POST, postParams, apiCallback, deserializationClass);
         }
