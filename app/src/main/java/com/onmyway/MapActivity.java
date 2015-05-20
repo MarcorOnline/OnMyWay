@@ -44,7 +44,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>()
         {
             @Override
-            public void OnComplete(Object result)
+            public void OnComplete(Appointment result)
             {
                 appointment = (Appointment)result;
                 InitMap((Appointment)result);
@@ -118,7 +118,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         ServiceGateway.GetUsersStatusAsync(appointmentId, new ApiCallback<ArrayList<UserStatus>>()
         {
             @Override
-            public void OnComplete(Object result)
+            public void OnComplete(ArrayList<UserStatus> result)
             {
                 Marker userMarker;
 

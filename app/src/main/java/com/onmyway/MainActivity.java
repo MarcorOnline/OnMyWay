@@ -131,7 +131,7 @@ public class MainActivity extends ActionBarActivity {
 
                 ServiceGateway.LoginAsync(phoneNumber, new ApiCallback<UserResponse>() {
                     @Override
-                    public void OnComplete(Object result) {
+                    public void OnComplete(UserResponse result) {
                         loginTask = false;
                         showProgress(false);
 
@@ -157,7 +157,7 @@ public class MainActivity extends ActionBarActivity {
 
             ServiceGateway.GetAppointmentsPreviewAsync(user.getPhoneNumber(), new ApiCallback<ArrayList<AppointmentBase>>() {
                 @Override
-                public void OnComplete(Object result) {
+                public void OnComplete(ArrayList<AppointmentBase> result) {
                     getAppointmentsTask = false;
                     showProgress(false);
 

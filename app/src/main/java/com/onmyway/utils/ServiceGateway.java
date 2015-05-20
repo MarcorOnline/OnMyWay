@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.onmyway.model.*;
+import com.onmyway.responses.AppointmentResponse;
+import com.onmyway.responses.BooleanResponse;
 import com.onmyway.responses.UserResponse;
 
 import java.io.BufferedReader;
@@ -42,7 +44,7 @@ public class ServiceGateway {
     }
 
     // appointment/add
-    public static void UploadAppointmentAsync(String phoneNumber, Appointment appointment, ApiCallback<Appointment> apiCallback) {
+    public static void UploadAppointmentAsync(String phoneNumber, Appointment appointment, ApiCallback<AppointmentResponse> apiCallback) {
         HashMap<String, String> params = new HashMap<>();
 
         params.put("title", appointment.getTitle());
@@ -58,21 +60,21 @@ public class ServiceGateway {
         params.put("validUsers", jsonValidUsers);
         params.put("invalidUsers", jsonInvalidUsers);
 
-        new PostApiTask<Appointment>("appointment/add", params, apiCallback);
+        new PostApiTask<Appointment>("appointment/add", params, apiCallback, AppointmentResponse.class);
     }
 
     // appointment/delete
-    public static void RemoveAppointmentAsync(String phoneNumber, String appointmentId, ApiCallback<Boolean> apiCallback) {
+    public static void RemoveAppointmentAsync(String phoneNumber, String appointmentId, ApiCallback<BooleanResponse> apiCallback) {
         HashMap<String, String> params = new HashMap<>();
         params.put("authorPhoneNumber", phoneNumber);
         params.put("id", appointmentId);
 
-        new PostApiTask<Boolean>("appointment/delete", params, apiCallback).execute();
+        new PostApiTask<Boolean>("appointment/delete", params, apiCallback, BooleanResponse.class).execute();
     }
 
     // appointment/get
-    public static void GetFullAppointmentAsync(String appointmentId, ApiCallback<Appointment> apiCallback) {
-        new GetApiTask<Appointment>("appointment/get?appointmentId=" + appointmentId, apiCallback).execute();
+    public static void GetFullAppointmentAsync(String appointmentId, ApiCallback<AppointmentResponse> apiCallback) {
+        new GetApiTask<Appointment>("appointment/get?appointmentId=" + appointmentId, apiCallback, AppointmentResponse.class).execute();
     }
 
     // appointments/users/status
@@ -80,13 +82,13 @@ public class ServiceGateway {
         new GetApiTask<ArrayList<UserStatus>>("appointment/users/status?appointmentId=" + appointmentId, apiCallback).execute();
     }
 
-    // api/users/status
-    public static void UpdateUserStatusAsync(String phoneNumber, String status, ApiCallback<Boolean> apiCallback) {
+    // users/status
+    public static void UpdateUserStatusAsync(String phoneNumber, String status, ApiCallback<BooleanResponse> apiCallback) {
         HashMap<String, String> params = new HashMap<>();
         params.put("phoneNumber", phoneNumber);
         params.put("status", status);
 
-        new PostApiTask<Boolean>("user/status", params, apiCallback).execute();
+        new PostApiTask<Boolean>("user/status", params, apiCallback, BooleanResponse.class).execute();
     }
 
     private static class GetApiTask<T> extends ApiTask<T> {
