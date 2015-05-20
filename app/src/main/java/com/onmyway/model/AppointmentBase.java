@@ -15,9 +15,10 @@ public class AppointmentBase {
     private Location location;
     private Calendar startDateTime;
     private Calendar trackingDateTime;
+    private String authorPhoneNumber;
 
-    private String formattedstartDateTime;
-    private String formattedtrackingDateTime;
+    private String formattedStartDateTime;
+    private String formattedTrackingDateTime;
 
     public AppointmentBase(){
         startDateTime = Calendar.getInstance();
@@ -69,8 +70,8 @@ public class AppointmentBase {
 
     public void calendarsFromStrings()
     {
-        DateTime start = ISODateTimeFormat.dateTimeParser().parseDateTime(formattedstartDateTime);
-        DateTime tracking = ISODateTimeFormat.dateTimeParser().parseDateTime(formattedtrackingDateTime);
+        DateTime start = ISODateTimeFormat.dateTimeParser().parseDateTime(formattedStartDateTime);
+        DateTime tracking = ISODateTimeFormat.dateTimeParser().parseDateTime(formattedTrackingDateTime);
 
         startDateTime = start.toCalendar(null);
         trackingDateTime = tracking.toCalendar(null);
@@ -80,7 +81,21 @@ public class AppointmentBase {
     {
         DateTimeFormatter formatter = ISODateTimeFormat.dateTimeNoMillis();
 
-        formattedstartDateTime = formatter.print(new DateTime(startDateTime));
-        formattedtrackingDateTime = formatter.print(new DateTime(trackingDateTime));
+        formattedStartDateTime = formatter.print(new DateTime(startDateTime));
+        formattedTrackingDateTime = formatter.print(new DateTime(trackingDateTime));
+    }
+
+    public String getAuthorPhoneNumber() {
+        return authorPhoneNumber;
+    }
+
+    public String getFormattedStartDateTime() {
+        calendarsToStrings();
+        return formattedStartDateTime;
+    }
+
+    public String getFormattedTrackingDateTime() {
+        calendarsToStrings();
+        return formattedTrackingDateTime;
     }
 }

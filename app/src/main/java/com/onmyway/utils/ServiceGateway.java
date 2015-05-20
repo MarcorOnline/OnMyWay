@@ -36,60 +36,82 @@ public class ServiceGateway {
     public final static String baseAPI = "http://onmywayapp.azurewebsites.net/api/";
     //public final static String baseAPI = "http://localhost:1192/api/";
 
-    // api/users/login
-    public static void LoginAsync(String phoneNumber, ApiCallback<User> apiCallback)
-    {
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("phoneNumber", phoneNumber));
-
-        new ApiTask<User>("user/login", ApiTask.RestMethod.POST, params, apiCallback).execute();
-    }
-
-    // api/appointments/base/get
-    public static void GetAppointmentsPreviewAsync(String phoneNumber, ApiCallback<ArrayList<AppointmentBase>> apiCallback)
-    {
-        new ApiTask<ArrayList<AppointmentBase>>("user/appointments?phoneNumber=" + phoneNumber, ApiTask.RestMethod.GET, null, apiCallback).execute();
-    }
-
-    // api/appointments/add
-    public static void UploadAppointmentAsync(String phoneNumber, Appointment appointment, ApiCallback<Appointment> apiCallback)
-    {
-        //format the dates
-        appointment.calendarsToStrings();
-
+    // users/login
+    public static void LoginAsync(String phoneNumber, ApiCallback<User> apiCallback) {
         HashMap<String, String> params = new HashMap<>();
         params.put("phoneNumber", phoneNumber);
 
-        //TODO
+        new PostApiTask<User>("user/login", params, apiCallback).execute();
     }
 
-    // api/appointments/delete
-    public static void RemoveAppointmentAsync(String phoneNumber, String appointmentId, ApiCallback<Boolean> apiCallback)
-    {
-        //TODO
+    // user/appointments
+    public static void GetAppointmentsPreviewAsync(String phoneNumber, ApiCallback<ArrayList<AppointmentBase>> apiCallback) {
+        new GetApiTask<ArrayList<AppointmentBase>>("user/appointments?phoneNumber=" + phoneNumber, apiCallback).execute();
     }
 
-    // api/appointments/get
-    public static void GetFullAppointmentAsync(String appointmentId, ApiCallback<Appointment> apiCallback)
-    {
-        //TODO
+    // appointment/add
+    public static void UploadAppointmentAsync(String phoneNumber, Appointment appointment, ApiCallback<Appointment> apiCallback) {
+        HashMap<String, String> params = new HashMap<>();
+
+        params.put("title", appointment.getTitle());
+        params.put("authorPhoneNumber", phoneNumber);
+        params.put("formattedStartDateTime", appointment.getFormattedStartDateTime());
+        params.put("formattedTrackingDateTime", appointment.getFormattedTrackingDateTime());
+
+        String jsonLocation = new Gson().toJson(appointment.getLocation());
+        String jsonValidUsers = new Gson().toJson(appointment.getValidUsers());
+        String jsonInvalidUsers = new Gson().toJson(appointment.getInvalidUsers());
+
+        params.put("location", jsonLocation);
+        params.put("validUsers", jsonValidUsers);
+        params.put("invalidUsers", jsonInvalidUsers);
+
+        new PostApiTask<Appointment>("appointment/add", params, apiCallback);
     }
 
-    // api/appointments/users/status
-    public static void GetUsersStatusAsync(String appointmentId, ApiCallback<ArrayList<UserStatus>> apiCallback)
-    {
-        //TODO
+    // appointment/delete
+    public static void RemoveAppointmentAsync(String phoneNumber, String appointmentId, ApiCallback<Boolean> apiCallback) {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("authorPhoneNumber", phoneNumber);
+        params.put("id", appointmentId);
+
+        new PostApiTask<Boolean>("appointment/delete", params, apiCallback).execute();
+    }
+
+    // appointment/get
+    public static void GetFullAppointmentAsync(String appointmentId, ApiCallback<Appointment> apiCallback) {
+        new GetApiTask<Appointment>("appointment/get?appointmentId=" + appointmentId, apiCallback).execute();
+    }
+
+    // appointments/users/status
+    public static void GetUsersStatusAsync(String appointmentId, ApiCallback<ArrayList<UserStatus>> apiCallback) {
+        new GetApiTask<ArrayList<UserStatus>>("appointment/users/status?appointmentId=" + appointmentId, apiCallback).execute();
     }
 
     // api/users/status
-    public static void UpdateUserStatusAsync(String phoneNumber, String status, ApiCallback<Boolean> apiCallback)
-    {
-        //TODO
+    public static void UpdateUserStatusAsync(String phoneNumber, String status, ApiCallback<Boolean> apiCallback) {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("phoneNumber", phoneNumber);
+        params.put("status", status);
+
+        new PostApiTask<Boolean>("user/status", params, apiCallback).execute();
+    }
+
+    private static class GetApiTask<T> extends ApiTask<T> {
+        public GetApiTask(String relativeUrl, ApiCallback apiCallback){
+            super(relativeUrl, RestMethod.GET, null, apiCallback);
+        }
+    }
+
+    private static class PostApiTask<T> extends ApiTask<T> {
+        public PostApiTask(String relativeUrl, HashMap<String, String> postParams, ApiCallback apiCallback){
+            super(relativeUrl, RestMethod.POST, postParams, apiCallback);
+        }
     }
 
     private static class ApiTask<T> extends AsyncTask<Void, Void, T> {
 
-        public enum RestMethod{
+        protected enum RestMethod{
             GET,
             POST
         }
@@ -97,9 +119,9 @@ public class ServiceGateway {
         private String relativeUrl;
         private ApiCallback apiCallback;
         private RestMethod method;
-        private List<NameValuePair> postParams;
+        private HashMap<String, String> postParams;
 
-        public ApiTask(String relativeUrl, RestMethod method, @Nullable List<NameValuePair> postParams, ApiCallback apiCallback) {
+        protected ApiTask(String relativeUrl, RestMethod method, @Nullable HashMap<String, String> postParams, ApiCallback apiCallback) {
             this.relativeUrl = relativeUrl;
             this.apiCallback = apiCallback;
             this.method = method;
@@ -190,21 +212,20 @@ public class ServiceGateway {
                 return null;
         }
 
-        private String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException
-        {
+        private String getQuery(HashMap<String, String> params) throws UnsupportedEncodingException {
             StringBuilder result = new StringBuilder();
             boolean first = true;
 
-            for (NameValuePair pair : params)
+            for (String key : params.keySet())
             {
                 if (first)
                     first = false;
                 else
                     result.append("&");
 
-                result.append(URLEncoder.encode(pair.getName(), "UTF-8"));
+                result.append(URLEncoder.encode(key, "UTF-8"));
                 result.append("=");
-                result.append(URLEncoder.encode(pair.getValue(), "UTF-8"));
+                result.append(URLEncoder.encode(params.get(key), "UTF-8"));
             }
 
             return result.toString();
