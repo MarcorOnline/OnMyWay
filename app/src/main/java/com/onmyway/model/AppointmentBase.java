@@ -24,6 +24,8 @@ public class AppointmentBase {
         startDateTime = Calendar.getInstance();
         trackingDateTime = Calendar.getInstance();
         location = new Location();
+        title = "";
+        authorPhoneNumber = "";
     }
 
     public String getId()
