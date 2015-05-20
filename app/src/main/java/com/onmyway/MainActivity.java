@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -22,6 +21,7 @@ import android.widget.TextView;
 import com.onmyway.model.AppointmentBase;
 import com.onmyway.model.GlobalData;
 import com.onmyway.model.User;
+import com.onmyway.responses.UserResponse;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ServiceGateway;
 
@@ -129,14 +129,16 @@ public class MainActivity extends ActionBarActivity {
                 loginTask = true;
                 showProgress(true);
 
-                ServiceGateway.LoginAsync(phoneNumber, new ApiCallback<User>() {
+                ServiceGateway.LoginAsync(phoneNumber, new ApiCallback<UserResponse>() {
                     @Override
-                    public void OnComplete(User result) {
+                    public void OnComplete(Object result) {
                         loginTask = false;
                         showProgress(false);
 
                         if (result != null) {
-                            GlobalData.setLoggedUser(result);
+                            User user = ((UserResponse)result).Data;
+
+                            GlobalData.setLoggedUser(user);
                             downloadAppointments();
                         }
                     }
@@ -155,12 +157,12 @@ public class MainActivity extends ActionBarActivity {
 
             ServiceGateway.GetAppointmentsPreviewAsync(user.getPhoneNumber(), new ApiCallback<ArrayList<AppointmentBase>>() {
                 @Override
-                public void OnComplete(ArrayList<AppointmentBase> result) {
+                public void OnComplete(Object result) {
                     getAppointmentsTask = false;
                     showProgress(false);
 
                     if (result != null) {
-                        for(AppointmentBase appointment : result)
+                        for(AppointmentBase appointment : (ArrayList<AppointmentBase>)result)
                         {
                             //unformat dates
                             appointment.calendarsFromStrings();
@@ -168,7 +170,7 @@ public class MainActivity extends ActionBarActivity {
 
                         ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
                         oldAppointments.clear();
-                        oldAppointments.addAll(result);
+                        oldAppointments.addAll((ArrayList<AppointmentBase>)result);
 
                         appointmentsAdapter.notifyDataSetChanged();
                     }

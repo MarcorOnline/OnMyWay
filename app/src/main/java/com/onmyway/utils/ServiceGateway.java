@@ -2,30 +2,22 @@ package com.onmyway.utils;
 
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NavUtils;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import com.onmyway.model.*;
+import com.onmyway.responses.UserResponse;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Marco on 15/05/2015.
@@ -37,11 +29,11 @@ public class ServiceGateway {
     //public final static String baseAPI = "http://localhost:1192/api/";
 
     // users/login
-    public static void LoginAsync(String phoneNumber, ApiCallback<User> apiCallback) {
+    public static void LoginAsync(String phoneNumber, ApiCallback<UserResponse> apiCallback) {
         HashMap<String, String> params = new HashMap<>();
         params.put("phoneNumber", phoneNumber);
 
-        new PostApiTask<User>("user/login", params, apiCallback).execute();
+        new PostApiTask<User>("user/login", params, apiCallback, UserResponse.class).execute();
     }
 
     // user/appointments
@@ -98,18 +90,27 @@ public class ServiceGateway {
     }
 
     private static class GetApiTask<T> extends ApiTask<T> {
+
         public GetApiTask(String relativeUrl, ApiCallback apiCallback){
-            super(relativeUrl, RestMethod.GET, null, apiCallback);
+            super(relativeUrl, RestMethod.GET, null, apiCallback, null);
+        }
+        public GetApiTask(String relativeUrl, ApiCallback apiCallback, Class deserializationClass){
+            super(relativeUrl, RestMethod.GET, null, apiCallback, deserializationClass);
         }
     }
 
     private static class PostApiTask<T> extends ApiTask<T> {
+
         public PostApiTask(String relativeUrl, HashMap<String, String> postParams, ApiCallback apiCallback){
-            super(relativeUrl, RestMethod.POST, postParams, apiCallback);
+            super(relativeUrl, RestMethod.POST, postParams, apiCallback, null);
+        }
+
+        public PostApiTask(String relativeUrl, HashMap<String, String> postParams, ApiCallback apiCallback, Class deserializationClass){
+            super(relativeUrl, RestMethod.POST, postParams, apiCallback, deserializationClass);
         }
     }
 
-    private static class ApiTask<T> extends AsyncTask<Void, Void, T> {
+    private static class ApiTask<T> extends AsyncTask<Void, Void, Object> {
 
         protected enum RestMethod{
             GET,
@@ -119,25 +120,27 @@ public class ServiceGateway {
         private String relativeUrl;
         private ApiCallback apiCallback;
         private RestMethod method;
+        private Class deserializationClass;
         private HashMap<String, String> postParams;
 
-        protected ApiTask(String relativeUrl, RestMethod method, @Nullable HashMap<String, String> postParams, ApiCallback apiCallback) {
+        protected ApiTask(String relativeUrl, RestMethod method, @Nullable HashMap<String, String> postParams, ApiCallback apiCallback, Class deserializationClass) {
             this.relativeUrl = relativeUrl;
             this.apiCallback = apiCallback;
             this.method = method;
             this.postParams = postParams;
+            this.deserializationClass = deserializationClass;
         }
 
         @Override
-        protected T doInBackground(Void... params) {
-            if(method == RestMethod.GET)
+        protected Object doInBackground(Void... params) {
+            /*if(method == RestMethod.GET)
                 return executeGet();
-            else
+            else*/
                 return executePost();
         }
 
-        private T executeGet() {
-            RestResponse<T> result;
+        private Object executeGet() {
+            Object result;
 
             //ClientRequest req = new ClientRequest(baseAPI);
 
@@ -151,7 +154,7 @@ public class ServiceGateway {
                 }*/
 
                 BufferedReader br = new BufferedReader(new InputStreamReader((con.getInputStream())));
-                result = (RestResponse<T>) new Gson().fromJson(br, new RestResponse<T>().getClass());
+                result = new Gson().fromJson(br, deserializationClass);
             } catch (Exception e) {
                 result = null;
             } finally {
@@ -159,14 +162,11 @@ public class ServiceGateway {
                     con.disconnect();
             }
 
-            if(result != null)
-                return result.Data;
-            else
-                return null;
+            return result;
         }
 
-        private T executePost() {
-            RestResponse<T> result;
+        private Object executePost() {
+            Object result = null;
 
             //ClientRequest req = new ClientRequest(baseAPI);
 
@@ -193,12 +193,11 @@ public class ServiceGateway {
 
                 StringBuilder body = new StringBuilder();
                 String line = null;
-                while( (line = br.readLine()) != null)
-                {
+                while( (line = br.readLine()) != null) {
                     body.append(line);
                 }
 
-                result = (RestResponse<T>) new Gson().fromJson(body.toString(), new RestResponse<T>().getClass());
+                result = new Gson().fromJson(body.toString(), deserializationClass);
             } catch (Exception e) {
                 result = null;
             } finally {
@@ -206,10 +205,7 @@ public class ServiceGateway {
                     con.disconnect();
             }
 
-            if(result != null)
-                return result.Data;
-            else
-                return null;
+            return result;
         }
 
         private String getQuery(HashMap<String, String> params) throws UnsupportedEncodingException {
@@ -232,14 +228,8 @@ public class ServiceGateway {
         }
 
         @Override
-        protected void onPostExecute(T result) {
+        protected void onPostExecute(Object result) {
             apiCallback.OnComplete(result);
-        }
-
-        private class RestResponse<T>
-        {
-            public String Error;
-            public T Data;
         }
     }
 }

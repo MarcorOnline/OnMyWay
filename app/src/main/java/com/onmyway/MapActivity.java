@@ -44,10 +44,10 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<Appointment>()
         {
             @Override
-            public void OnComplete(Appointment result)
+            public void OnComplete(Object result)
             {
-                appointment = result;
-                InitMap(result);
+                appointment = (Appointment)result;
+                InitMap((Appointment)result);
             }
         });
 
@@ -92,7 +92,7 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
 
     private void InitMap(Appointment appointment)
     {
-        //È il primo draw, devo disegnare l'appuntamento
+        //primo draw, devo disegnare l'appuntamento
         Marker appointMarker = map.addMarker(new MarkerOptions()
                 .position(new LatLng(appointment.getLocation().getLatitude(), appointment.getLocation().getLongitude()))
                 .title(appointment.getLocation().getTitle())
@@ -118,13 +118,13 @@ public class MapActivity extends ActionBarActivity  implements OnMapReadyCallbac
         ServiceGateway.GetUsersStatusAsync(appointmentId, new ApiCallback<ArrayList<UserStatus>>()
         {
             @Override
-            public void OnComplete(ArrayList<UserStatus> result)
+            public void OnComplete(Object result)
             {
                 Marker userMarker;
 
-                for(UserStatus user : result)
+                for(UserStatus user : (ArrayList<UserStatus>)result)
                 {
-                    //L'utente ha già un marker, lo aggiorno
+                    //L'utente ha gia un marker, lo aggiorno
                     userMarker = markers.get(user.getPhoneNumber());
                     userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude())); //TODO update status
                 }
