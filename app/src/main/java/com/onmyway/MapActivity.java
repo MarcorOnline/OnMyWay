@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class MapActivity extends ActionBarActivity  implements OnMapReadyCallback
+public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 {
     private static String appointmentId;
     private static GoogleMap map;
