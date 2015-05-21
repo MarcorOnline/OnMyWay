@@ -8,7 +8,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.location.Location;
-import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -17,26 +16,27 @@ import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.common.api.*;
+import com.google.android.gms.location.places.*;
+import com.google.android.gms.maps.*;
+import com.google.android.gms.maps.model.*;
+import com.onmyway.adapters.PlaceAutocompleteAdapter;
 import com.onmyway.model.Appointment;
-import com.onmyway.model.AppointmentBase;
+import com.onmyway.model.GlobalData;
+import com.onmyway.utils.ApiCallback;
+import com.onmyway.utils.ServiceGateway;
+import com.onmyway.utils.StringUtils;
+import com.onmyway.responses.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -66,12 +66,19 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     private static Appointment newAppointment = new Appointment();
 
+    private GoogleMap map;
     private static GoogleApiClient GPlayClient;
     private LocationHelper lh;
 
     // Async Tasks
-    private UploadAppointmentTask uploadTask;
-    private GoogleMap map;
+    private boolean uploadTask;
+
+    // Autocomplete utils
+    protected GoogleApiClient mGoogleApiClient;
+    private PlaceAutocompleteAdapter mAdapter;
+    //TODO vedere queste coordinate se è meglio centrarle sulla posizione utente
+    private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
+            new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,8 +154,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
             }
         });
 
-
-
         //pre-populate tracking datetime
         Calendar now = Calendar.getInstance();
         setTrackingDate(now);
@@ -158,6 +163,29 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         now.add(Calendar.MINUTE, 30);
         setAppointmentDate(now);
         setAppointmentTime(now);
+
+        //autocomplete
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, 0 /* clientId */, this)
+                .addApi(Places.GEO_DATA_API)
+                .build();
+
+        mAdapter = new PlaceAutocompleteAdapter(this, android.R.layout.simple_list_item_1,
+                mGoogleApiClient, BOUNDS_GREATER_SYDNEY, null);
+
+        locationView.setAdapter(mAdapter);
+
+        locationView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final PlaceAutocompleteAdapter.PlaceAutocomplete item = mAdapter.getItem(position);
+                final String placeId = String.valueOf(item.placeId);
+
+                PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
+                        .getPlaceById(mGoogleApiClient, placeId);
+                placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
+            }
+        });
 
         //TODO: popolare mappa/location su posizione corrente
 
@@ -223,7 +251,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_confirm) {
             //TODO gestire bottone confirm
 
@@ -242,28 +269,43 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         //TODO logica di aggiunta amici tramite picker rubrica
     }
 
-    /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
-     */
-    public void attemptLogin() {
-        if (uploadTask != null) {
+    public void saveAppointment() {
+        if (uploadTask)
             return;
-        }
 
         boolean uploadable = false;
 
-        //TODO logica di validazione di newAppointment
+        //logica di validazione di newAppointment
+        if (StringUtils.IsNullOrWhiteSpaces(newAppointment.getTitle()))
+            showToast(getString(R.string.missing_title), false);
+        else
+        {
+            com.onmyway.model.Location l = newAppointment.getLocation();
+            if (l.getLatitude() == 0 && l.getLongitude() == 0)
+                showToast("You must set a location", false);
+            else
+                uploadable = true;
+        }
 
         if (uploadable)
         {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+            uploadTask = true;
             showProgress(true);
-            uploadTask = new UploadAppointmentTask(newAppointment);
-            uploadTask.execute((Void) null);
+
+            ServiceGateway.UploadAppointmentAsync(GlobalData.getLoggedUser().getPhoneNumber(), newAppointment, new ApiCallback<AppointmentResponse>() {
+                @Override
+                public void OnComplete(AppointmentResponse result) {
+
+                    showProgress(false);
+                    uploadTask = false;
+                }
+            });
         }
+    }
+
+    private void showToast(String message, boolean shortDuration){
+        Toast toast = Toast.makeText(this, message, shortDuration ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG);
+        toast.show();
     }
 
     /**
@@ -425,39 +467,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         }
     }
 
-    public class UploadAppointmentTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final AppointmentBase appointment;
-
-        UploadAppointmentTask(AppointmentBase appointment) {
-            this.appointment = appointment;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            boolean success = false;
-            // TODO: logica di invio al server di appointment (e torna true o false in base al risultato)
-
-            return success;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            uploadTask = null;
-            showProgress(false);
-
-            if (success) {
-                finish();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            uploadTask = null;
-            showProgress(false);
-        }
-    }
-
     public class LocationHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
     {
         Location lastLocation;
@@ -506,6 +515,25 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
         }
     }
+
+    private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback
+            = new ResultCallback<PlaceBuffer>() {
+        @Override
+        public void onResult(PlaceBuffer places) {
+
+            if (!places.getStatus().isSuccess()) {
+                // Request did not complete successfully
+                places.release();
+                return;
+            }
+            // Get the Place object from the buffer.
+            Place place = places.get(0);
+
+            //TODO usare l'oggetto place per riempire il box e la mappa
+
+            places.release();
+        }
+    };
 }
 
 
