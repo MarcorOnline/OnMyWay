@@ -117,11 +117,6 @@ public class PlaceAutocompleteAdapter
 
     /**
      * Submits an autocomplete query to the Places Geo Data Autocomplete API.
-     * Results are returned as {@link com.example.google.playservices.placecomplete.PlaceAutocompleteAdapter.PlaceAutocomplete}
-     * objects to store the Place ID and description that the API returns.
-     * Returns an empty list if no results were found.
-     * Returns null if the API client is not available or the query did not complete
-     * successfully.
      * This method MUST be called off the main UI thread, as it will block until data is returned
      * from the API, which may include a network request.
      *
@@ -130,6 +125,9 @@ public class PlaceAutocompleteAdapter
      * @see Places#GEO_DATA_API#getAutocomplete(CharSequence)
      */
     private ArrayList<PlaceAutocomplete> getAutocomplete(CharSequence constraint) {
+        if (!mGoogleApiClient.isConnected())
+            mGoogleApiClient.connect();
+
         if (mGoogleApiClient.isConnected()) {
             // Submit the query to the autocomplete API and retrieve a PendingResult that will
             // contain the results when the query completes.
@@ -141,7 +139,7 @@ public class PlaceAutocompleteAdapter
             // This method should have been called off the main UI thread. Block and wait for at most 60s
             // for a result from the API.
             AutocompletePredictionBuffer autocompletePredictions = results
-                    .await(60, TimeUnit.SECONDS);
+                    .await(10, TimeUnit.SECONDS);
 
             // Confirm that the query completed successfully, otherwise return null
             final Status status = autocompletePredictions.getStatus();

@@ -87,7 +87,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
         //GET UI items
         locationView = (AutoCompleteTextView) findViewById(R.id.locationBox);
-        populateAutoComplete();
 
         titleView = (EditText) findViewById(R.id.titleBox);
 
@@ -170,6 +169,14 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
                 .addApi(Places.GEO_DATA_API)
                 .build();
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .enableAutoManage(this, 1, this)
+                .addConnectionCallbacks(this)
+                .build();
+
+        mGoogleApiClient.connect();
+
         mAdapter = new PlaceAutocompleteAdapter(this, android.R.layout.simple_list_item_1,
                 mGoogleApiClient, BOUNDS_GREATER_SYDNEY, null);
 
@@ -186,6 +193,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
                 placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
             }
         });
+        locationView.setThreshold(3);
 
         //TODO: popolare mappa/location su posizione corrente
 
@@ -252,16 +260,11 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         int id = item.getItemId();
 
         if (id == R.id.action_confirm) {
-            //TODO gestire bottone confirm
-
+            saveAppointment();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void populateAutoComplete() {
-        //getLoaderManager().initLoader(0, null, this);
     }
 
     public void addFriend()
@@ -273,7 +276,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         if (uploadTask)
             return;
 
-        boolean uploadable = false;
+        boolean canUpload = false;
 
         //logica di validazione di newAppointment
         if (StringUtils.IsNullOrWhiteSpaces(newAppointment.getTitle()))
@@ -284,10 +287,10 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
             if (l.getLatitude() == 0 && l.getLongitude() == 0)
                 showToast("You must set a location", false);
             else
-                uploadable = true;
+                canUpload = true;
         }
 
-        if (uploadable)
+        if (canUpload)
         {
             uploadTask = true;
             showProgress(true);
