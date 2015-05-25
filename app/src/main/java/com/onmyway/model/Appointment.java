@@ -1,5 +1,7 @@
 package com.onmyway.model;
 
+import com.google.android.gms.location.places.Place;
+
 import java.util.ArrayList;
 
 /**
@@ -28,7 +30,8 @@ public class Appointment extends AppointmentBase
         return invalidUsers;
     }
 
-    public void setInvalidUsers(ArrayList<User> users) {
+    public void setInvalidUsers(ArrayList<User> users)
+    {
         this.invalidUsers = users;
     }
 }

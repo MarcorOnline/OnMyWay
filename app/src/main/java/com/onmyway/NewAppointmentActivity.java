@@ -43,7 +43,7 @@ import java.util.Calendar;
 import java.util.List;
 
 
-public class NewAppointmentActivity extends ActionBarActivity  implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
+public class NewAppointmentActivity extends ActionBarActivity  implements OnMapReadyCallback
 {
     public final static int MODE_START_DATETIME = 1;
     public final static int MODE_TRACKING_DATETIME = 2;
@@ -58,6 +58,11 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     private static EditText trackingDateView;
     private static EditText trackingTimeView;
 
+    private static Calendar trackingDate;
+    private static Calendar trackingTime;
+    private static Calendar startDate;
+    private static Calendar startTime;
+
     private View progressView;
     private View normalView;
 
@@ -69,16 +74,13 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     private GoogleMap map;
     private static GoogleApiClient GPlayClient;
     private LocationHelper lh;
+    private Place place;
 
     // Async Tasks
     private boolean uploadTask;
 
     // Autocomplete utils
-    protected GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mAdapter;
-    //TODO vedere queste coordinate se è meglio centrarle sulla posizione utente
-    private static final LatLngBounds BOUNDS_GREATER_SYDNEY = new LatLngBounds(
-            new LatLng(-34.041458, 150.790100), new LatLng(-33.682247, 151.383362));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,56 +165,28 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         setAppointmentDate(now);
         setAppointmentTime(now);
 
-        //autocomplete
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, 0 /* clientId */, this)
-                .addApi(Places.GEO_DATA_API)
-                .build();
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Places.GEO_DATA_API)
-                .enableAutoManage(this, 1, this)
-                .addConnectionCallbacks(this)
-                .build();
-
-        mGoogleApiClient.connect();
-
-        mAdapter = new PlaceAutocompleteAdapter(this, android.R.layout.simple_list_item_1,
-                mGoogleApiClient, BOUNDS_GREATER_SYDNEY, null);
-
-        locationView.setAdapter(mAdapter);
-
-        locationView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final PlaceAutocompleteAdapter.PlaceAutocomplete item = mAdapter.getItem(position);
-                final String placeId = String.valueOf(item.placeId);
-
-                PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
-                        .getPlaceById(mGoogleApiClient, placeId);
-                placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
-            }
-        });
-        locationView.setThreshold(3);
-
-        //TODO: popolare mappa/location su posizione corrente
-
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
         lh = new LocationHelper();
 
         GPlayClient = new GoogleApiClient.Builder(this)
+                //map
                 .addConnectionCallbacks(lh)
                 .addOnConnectionFailedListener(lh)
                 .addApi(LocationServices.API)
+                //autocomplete
+                .addApi(Places.GEO_DATA_API)
+                .enableAutoManage(this, 1, lh)
                 .build();
 
         GPlayClient.connect();
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     private static void setAppointmentDate(Calendar date)
     {
+        startDate = date;
         dateView.setText(dateFormat.format(date.getTime()));
 
         Calendar startTime = newAppointment.getStartDateTime();
@@ -221,6 +195,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     private static void setAppointmentTime(Calendar time)
     {
+        startTime = time;
         timeView.setText(timeFormat.format(time.getTime()));
 
         Calendar startTime = newAppointment.getStartDateTime();
@@ -230,6 +205,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     private static void setTrackingTime(Calendar time)
     {
+        trackingTime = time;
         trackingTimeView.setText(timeFormat.format(time.getTime()));
 
         Calendar trackingTime = newAppointment.getTrackingDateTime();
@@ -239,6 +215,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     private static void setTrackingDate(Calendar date)
     {
+        trackingDate = date;
         trackingDateView.setText(dateFormat.format(date.getTime()));
 
         Calendar trackingTime = newAppointment.getTrackingDateTime();
@@ -260,6 +237,17 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         int id = item.getItemId();
 
         if (id == R.id.action_confirm) {
+            //fill ne appointment
+            newAppointment.setTitle(titleView.getText().toString());
+            newAppointment.setLocation(place);
+            newAppointment.setStartDateTime(startDate, startTime);
+            newAppointment.setTrackingDateTime(trackingDate, trackingTime);
+
+            /* TODO set users
+            newAppointment.setInvalidUsers();
+            newAppointment.setValidUsers();*/
+
+            //validate and save
             saveAppointment();
             return true;
         }
@@ -298,7 +286,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
             ServiceGateway.UploadAppointmentAsync(GlobalData.getLoggedUser().getPhoneNumber(), newAppointment, new ApiCallback<AppointmentResponse>() {
                 @Override
                 public void OnComplete(AppointmentResponse result) {
-
                     showProgress(false);
                     uploadTask = false;
                 }
@@ -360,34 +347,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     public void onMapReady(GoogleMap googleMap)
     {
         this.map = googleMap;
-    }
-
-    Location lastLocation;
-
-    @Override
-    public void onConnected(Bundle bundle)
-    {
-        lastLocation = LocationServices.FusedLocationApi.getLastLocation(GPlayClient);
-
-        if (lastLocation != null) {
-            map.addMarker(new MarkerOptions()
-                            .position(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
-                            //.title(user.getName())
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_place))
-            );
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i)
-    {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult)
-    {
-
     }
 
     public static class DatePickerFragment extends DialogFragment
@@ -472,19 +431,44 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     public class LocationHelper implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener
     {
-        Location lastLocation;
+        Location lastUserLocation;
         Marker userMarker;
 
         @Override
         public void onConnected(Bundle bundle)
         {
-            lastLocation = LocationServices.FusedLocationApi.getLastLocation(GPlayClient);
+            lastUserLocation = LocationServices.FusedLocationApi.getLastLocation(GPlayClient);
 
-            if (lastLocation != null)
+            if (lastUserLocation != null)
             {
-                LatLng position = new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude());
+                LatLng position = new LatLng(lastUserLocation.getLatitude(), lastUserLocation.getLongitude());
                 centerMap(position);
             }
+
+
+            //calcolato empiricamente dai boundary di esempio di Sidney
+            LatLngBounds bounds = new LatLngBounds(new LatLng(lh.lastUserLocation.getLatitude() - 0.18, lh.lastUserLocation.getLongitude() - 0.29), new LatLng(lh.lastUserLocation.getLatitude() + 0.18, lh.lastUserLocation.getLongitude() + 0.29));
+
+
+        /*LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include();*/
+            mAdapter = new PlaceAutocompleteAdapter(NewAppointmentActivity.this, android.R.layout.simple_list_item_1,
+                    GPlayClient, bounds, null);
+
+            locationView.setAdapter(mAdapter);
+
+            locationView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    final PlaceAutocompleteAdapter.PlaceAutocomplete item = mAdapter.getItem(position);
+                    final String placeId = String.valueOf(item.placeId);
+
+                    PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
+                            .getPlaceById(GPlayClient, placeId);
+                    placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
+                }
+            });
+            locationView.setThreshold(3);
         }
 
         private void centerMap(LatLng position)
@@ -493,7 +477,6 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
             {
                 userMarker = map.addMarker(new MarkerOptions()
                                 .position(position)
-                                .title("Federico") //TODO inserire nome utente
                                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_action_place))
                 );
             }
@@ -530,9 +513,8 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
                 return;
             }
             // Get the Place object from the buffer.
-            Place place = places.get(0);
-
-            //TODO usare l'oggetto place per riempire il box e la mappa
+            place = places.get(0);
+            lh.centerMap(place.getLatLng());
 
             places.release();
         }

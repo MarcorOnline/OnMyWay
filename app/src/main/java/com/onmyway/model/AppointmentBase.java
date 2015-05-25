@@ -1,5 +1,7 @@
 package com.onmyway.model;
 
+import com.google.android.gms.location.places.Place;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -99,5 +101,28 @@ public class AppointmentBase {
     public String getFormattedTrackingDateTime() {
         calendarsToStrings();
         return formattedTrackingDateTime;
+    }
+
+    public void setLocation(Place place)
+    {
+        Location location;
+        if (place.getAddress() == null)
+            location = new Location(place.getName().toString(), null, place.getLatLng().latitude, place.getLatLng().longitude);
+        else
+            location = new Location(place.getName().toString(), place.getAddress().toString(), place.getLatLng().latitude, place.getLatLng().longitude);
+
+        this.setLocation(location);
+    }
+
+    public void setStartDateTime(Calendar startDate, Calendar startTime)
+    {
+        startTime.set(startDate.get(Calendar.YEAR), startDate.get(Calendar.MONTH), startDate.get(Calendar.DAY_OF_MONTH));
+        startDateTime = startTime;
+    }
+
+    public void setTrackingDateTime(Calendar trackDate, Calendar trackTime)
+    {
+        trackTime.set(trackDate.get(Calendar.YEAR), trackDate.get(Calendar.MONTH), trackDate.get(Calendar.DAY_OF_MONTH));
+        trackingDateTime = trackTime;
     }
 }
