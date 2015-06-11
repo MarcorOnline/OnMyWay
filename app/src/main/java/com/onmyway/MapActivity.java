@@ -14,14 +14,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.onmyway.model.Appointment;
+import com.onmyway.model.GlobalData;
+import com.onmyway.model.Location;
 import com.onmyway.model.User;
 import com.onmyway.model.UserStatus;
 import com.onmyway.responses.AppointmentResponse;
-import com.onmyway.responses.UsersStatusResponse;
+import com.onmyway.responses.SyncResponse;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ServiceGateway;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 
@@ -117,19 +118,20 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
     private void Refresh()
     {
-        ServiceGateway.GetUsersStatusAsync(appointmentId, new ApiCallback<UsersStatusResponse>()
-        {
+        User user = GlobalData.getLoggedUser();
+        Location location = null;  //TODO prendere con LocationHelper
+
+        ServiceGateway.SynchronizeForeground(appointmentId, user.getPhoneNumber(), user.getStatus(), location, new ApiCallback<SyncResponse>() {
             @Override
-            public void OnComplete(UsersStatusResponse result)
-            {
+            public void OnComplete(SyncResponse result) {
                 Marker userMarker;
 
-                for(UserStatus user : result.Data)
-                {
-                    //L'utente ha gia un marker, lo aggiorno
-                    userMarker = markers.get(user.getPhoneNumber());
-                    userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude())); //TODO update status
-                }
+                if (result.AttendeeStates != null)
+                    for (UserStatus user : result.AttendeeStates) {
+                        //L'utente ha gia un marker, lo aggiorno
+                        userMarker = markers.get(user.getPhoneNumber());
+                        userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude())); //TODO update status
+                    }
             }
         });
     }

@@ -8,7 +8,8 @@
     <!-- Login progress -->
     <ProgressBar android:id="@+id/progress" style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp" android:visibility="gone" />
+        android:layout_marginBottom="8dp" android:visibility="gone"
+        android:layout_centerVertical="true" android:layout_centerHorizontal="true" />
 
     <ListView android:id="@+id/appointmentsList"
         android:layout_width="fill_parent"

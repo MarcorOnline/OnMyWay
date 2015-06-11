@@ -75,18 +75,29 @@ public class ServiceGateway {
         new GetApiTask<Appointment>("appointment/get?appointmentId=" + appointmentId, apiCallback, AppointmentResponse.class).execute();
     }
 
-    // appointments/users/status
-    public static void GetUsersStatusAsync(String appointmentId, ApiCallback<UsersStatusResponse> apiCallback) {
-        new GetApiTask<ArrayList<UserStatus>>("appointment/users/status?appointmentId=" + appointmentId, apiCallback, UsersStatusResponse.class).execute();
+
+    public static void SynchronizeForeground(String appointmentId, String phoneNumber, String status, @Nullable Location location, ApiCallback<SyncResponse> apiCallback) {
+        Synchronize(false, appointmentId, phoneNumber, status, location, apiCallback);
     }
 
-    // users/status
-    public static void UpdateUserStatusAsync(String phoneNumber, String status, ApiCallback<BooleanResponse> apiCallback) {
+    public static void SynchronizeBackground(String appointmentId, String phoneNumber, @Nullable Location location, String status, ApiCallback<SyncResponse> apiCallback) {
+        Synchronize(true, appointmentId, phoneNumber, status, location, apiCallback);
+    }
+
+    // appointment/sync
+    private static void Synchronize(boolean isLight, String appointmentId, String phoneNumber, String status, @Nullable Location location, ApiCallback<SyncResponse> apiCallback){
         HashMap<String, String> params = new HashMap<>();
+
         params.put("phoneNumber", phoneNumber);
         params.put("status", status);
 
-        new PostApiTask<Boolean>("user/status", params, apiCallback, BooleanResponse.class).execute();
+        if (location != null)
+        {
+            params.put("latitude", Double.toString(location.getLatitude()));
+            params.put("longitude", Double.toString(location.getLongitude()));
+        }
+
+        new PostApiTask<Boolean>("appointment/sync?appointmentId=" + appointmentId + "isLight=" + Boolean.toString(isLight), params, apiCallback, BooleanResponse.class).execute();
     }
 
     private static class GetApiTask<T> extends ApiTask<T> {
