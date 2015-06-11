@@ -23,9 +23,6 @@ import com.onmyway.NewAppointmentActivity;
 import com.onmyway.R;
 import com.onmyway.adapters.PlaceAutocompleteAdapter;
 
-/**
- * Created by Marco on 08/06/2015.
- */
 public class LocationHelper
 {
     private Location lastUserLocation;

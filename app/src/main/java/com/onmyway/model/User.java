@@ -7,6 +7,12 @@ public class User extends UserStatus {
     private String name;
     private String avatar;
 
+    public User(){}
+
+    public User(String phoneNumber){
+        this.setPhoneNumber(phoneNumber);
+    }
+
     public String getName() {
         return name;
     }

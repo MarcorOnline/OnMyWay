@@ -13,10 +13,8 @@
         android:layout_marginBottom="8dp" android:visibility="gone"
         android:layout_centerVertical="true" android:layout_centerHorizontal="true" />
 
-    <ScrollView android:id="@+id/form" android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
-        <LinearLayout android:id="@+id/email_login_form" android:layout_width="match_parent"
+        <LinearLayout android:id="@+id/new_appointment_form" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:orientation="vertical">
 
             <TextView
@@ -98,9 +96,11 @@
                     android:text="ADD FRIEND" />
             </LinearLayout>
 
+            <ListView android:id="@+id/invitedList"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
 
         </LinearLayout>
-    </ScrollView>
 
 </LinearLayout>
 

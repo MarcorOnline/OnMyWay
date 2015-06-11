@@ -58,7 +58,7 @@ public class ServiceGateway {
         params.put("validUsers", jsonValidUsers);
         params.put("invalidUsers", jsonInvalidUsers);
 
-        new PostApiTask<Appointment>("appointment/add", params, apiCallback, AppointmentResponse.class);
+        new PostApiTask<Appointment>("appointment/add", params, apiCallback, AppointmentResponse.class).execute();
     }
 
     // appointment/delete

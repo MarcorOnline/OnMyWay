@@ -2,30 +2,36 @@ package com.onmyway;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
-import android.location.Location;
+import android.content.Context;
+import android.content.Intent;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.text.format.DateFormat;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.common.api.*;
 import com.google.android.gms.location.places.*;
 import com.google.android.gms.maps.*;
@@ -33,13 +39,17 @@ import com.google.android.gms.maps.model.*;
 import com.onmyway.adapters.PlaceAutocompleteAdapter;
 import com.onmyway.model.Appointment;
 import com.onmyway.model.GlobalData;
+import com.onmyway.model.Location;
+import com.onmyway.model.User;
 import com.onmyway.utils.ApiCallback;
+import com.onmyway.utils.ContactsHelper;
 import com.onmyway.utils.LocationHelper;
 import com.onmyway.utils.ServiceGateway;
 import com.onmyway.utils.StringUtils;
 import com.onmyway.responses.*;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -72,10 +82,13 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     private static Appointment newAppointment = new Appointment();
 
+    //invited adapter
+    private InvitedAdapter invitedAdapter;
+
     private GoogleMap map;
     private static GoogleApiClient GPlayClient;
     private LocationHelper lh;
-    private Place place;
+    private Location location;
 
     // Async Tasks
     private boolean uploadTask;
@@ -99,7 +112,11 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         trackingTimeView = (EditText) findViewById(R.id.trackingTimeBox);
         trackingDateView = (EditText) findViewById(R.id.trackingDateBox);
 
-        normalView = findViewById(R.id.form);
+        invitedAdapter = new InvitedAdapter(this, newAppointment.getValidUsers());
+        ListView invitedList = (ListView) findViewById(R.id.invitedList);
+        invitedList.setAdapter(invitedAdapter);
+
+        normalView = findViewById(R.id.new_appointment_form);
         progressView = findViewById(R.id.progress);
 
         Button addButton = (Button)findViewById(R.id.addButton);
@@ -264,13 +281,9 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         if (id == R.id.action_confirm) {
             //fill ne appointment
             newAppointment.setTitle(titleView.getText().toString());
-            newAppointment.setLocation(place);
+            newAppointment.setLocation(location);
             newAppointment.setStartDateTime(startDate, startTime);
             newAppointment.setTrackingDateTime(trackingDate, trackingTime);
-
-            /* TODO set users
-            newAppointment.setInvalidUsers();
-            newAppointment.setValidUsers();*/
 
             //validate and save
             saveAppointment();
@@ -282,7 +295,21 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     public void addFriend()
     {
-        //TODO logica di aggiunta amici tramite picker rubrica
+        ContactsHelper.startPickContact(this);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            User user = ContactsHelper.getPhoneNumberFromPickResponse(this, requestCode, data);
+
+            if (!StringUtils.isNullOrWhiteSpaces(user.getPhoneNumber())) {
+                newAppointment.getValidUsers().add(user);
+                invitedAdapter.notifyDataSetChanged();
+            }
+            else
+                showToast("Unable to add this contact because he haven't a mobile phone number", false);
+        }
     }
 
     public void saveAppointment() {
@@ -292,15 +319,20 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         boolean canUpload = false;
 
         //logica di validazione di newAppointment
-        if (StringUtils.IsNullOrWhiteSpaces(newAppointment.getTitle()))
+        if (StringUtils.isNullOrWhiteSpaces(newAppointment.getTitle()))
             showToast(getString(R.string.missing_title), false);
         else
         {
             com.onmyway.model.Location l = newAppointment.getLocation();
-            if (l.getLatitude() == 0 && l.getLongitude() == 0)
+            if (l == null || (l.getLatitude() == 0 && l.getLongitude() == 0))
                 showToast("You must set a location", false);
             else
-                canUpload = true;
+            {
+                if(newAppointment.getValidUsers().size() == 0)
+                    showToast("You must invite at least one friend", false);
+                else
+                    canUpload = true;
+            }
         }
 
         if (canUpload)
@@ -313,6 +345,15 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
                 public void OnComplete(AppointmentResponse result) {
                     showProgress(false);
                     uploadTask = false;
+
+                    if (result.Data != null && !StringUtils.isNullOrWhiteSpaces(result.Data.getId()))
+                    {
+                        //SUCCESS
+                        GlobalData.getAppointments().add(result.Data);
+                        getParent().finish();
+                    }
+                    else
+                        showToast("Error: unable to create the event", true);
                 }
             });
         }
@@ -384,6 +425,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
     }
 
+    @SuppressLint("ValidFragment")
     public static class DatePickerFragment extends DialogFragment
             implements DatePickerDialog.OnDateSetListener {
 
@@ -423,6 +465,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         }
     }
 
+    @SuppressLint("ValidFragment")
     public static class TimePickerFragment extends DialogFragment
             implements TimePickerDialog.OnTimeSetListener {
 
@@ -474,13 +517,48 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
                 places.release();
                 return;
             }
+
             // Get the Place object from the buffer.
-            place = places.get(0);
+            Place place = places.get(0);
             lh.centerMap(map, place.getLatLng());
+
+            String address = "";
+            if (place.getAddress() != null)
+                address = place.getAddress().toString();
+
+            location = new Location(place.getName().toString(), address, place.getLatLng().latitude, place.getLatLng().longitude);
 
             places.release();
         }
     };
+
+    public class InvitedAdapter extends ArrayAdapter {
+        private LayoutInflater inflater;
+        private Context context;
+        private ArrayList<User> users;
+
+        public InvitedAdapter(Context context, ArrayList<User> users) {
+            super(context, android.R.layout.simple_list_item_2, users);
+
+            this.context = context;
+            this.users = users;
+
+            this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null)
+                convertView = inflater.inflate(android.R.layout.simple_list_item_2, parent, false);
+
+            User user = users.get(position);
+
+            ((TextView) convertView.findViewById(android.R.id.text1)).setText(user.getName());
+            ((TextView) convertView.findViewById(android.R.id.text2)).setText(user.getPhoneNumber());
+
+            return convertView;
+        }
+    }
 }
 
 
