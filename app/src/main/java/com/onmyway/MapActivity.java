@@ -20,8 +20,11 @@ import com.onmyway.model.User;
 import com.onmyway.model.UserStatus;
 import com.onmyway.responses.AppointmentResponse;
 import com.onmyway.responses.SyncResponse;
+import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
+import com.onmyway.utils.ContactsHelper;
 import com.onmyway.utils.ServiceGateway;
+import com.onmyway.utils.StringUtils;
 
 import java.util.HashMap;
 
@@ -38,6 +41,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        ActivityHelper.changeActionBarColor(this);
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -95,6 +100,8 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
     private void InitMap(Appointment appointment)
     {
+        ContactsHelper.ResolveContactsNames(this, appointment.getValidUsers());
+
         //primo draw, devo disegnare l'appuntamento
         Marker appointMarker = map.addMarker(new MarkerOptions()
                 .position(new LatLng(appointment.getLocation().getLatitude(), appointment.getLocation().getLongitude()))
@@ -104,12 +111,17 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         markers.put(appointment.getId(), appointMarker);
 
         Marker userMarker;
+        String userLabel;
         for (User user : appointment.getValidUsers())
         {
+            userLabel = user.getName();
+            if (StringUtils.isNullOrWhiteSpaces((userLabel)))
+                userLabel = user.getPhoneNumber();
+
             //L'utente non ha un marker, lo creo
             userMarker = map.addMarker(new MarkerOptions()
                     .position(new LatLng(user.getLatitude(), user.getLongitude()))
-                    .title(user.getName())
+                    .title(userLabel)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination))); //TODO avatar
 
             markers.put(appointment.getId(), userMarker);

@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.onmyway.model.*;
+import com.onmyway.requests.UploadAppointmentRequest;
 import com.onmyway.responses.*;
 
 import java.io.BufferedReader;
@@ -25,8 +26,8 @@ import java.util.HashMap;
 
 public class ServiceGateway {
 
-    public final static String baseAPI = "http://onmywayapp.azurewebsites.net/api/";
-    //public final static String baseAPI = "http://localhost:1192/api/";
+    //public final static String baseAPI = "http://onmywayapp.azurewebsites.net/api/";
+    public final static String baseAPI = "http://10.0.3.2:1192/api/";
 
     // users/login
     public static void LoginAsync(String phoneNumber, ApiCallback<UserResponse> apiCallback) {
@@ -43,22 +44,16 @@ public class ServiceGateway {
 
     // appointment/add
     public static void UploadAppointmentAsync(String phoneNumber, Appointment appointment, ApiCallback<AppointmentResponse> apiCallback) {
-        HashMap<String, String> params = new HashMap<>();
 
-        params.put("title", appointment.getTitle());
-        params.put("authorPhoneNumber", phoneNumber);
-        params.put("formattedStartDateTime", appointment.getFormattedStartDateTime());
-        params.put("formattedTrackingDateTime", appointment.getFormattedTrackingDateTime());
+        UploadAppointmentRequest body = new UploadAppointmentRequest();
+        body.title = appointment.getTitle();
+        body.authorPhoneNumber = phoneNumber;
+        body.formattedStartDateTime = appointment.getFormattedStartDateTime();
+        body.formattedTrackingDateTime = appointment.getFormattedTrackingDateTime();
+        body.location = appointment.getLocation();
+        body.validUsers = appointment.getValidUsers();
 
-        String jsonLocation = new Gson().toJson(appointment.getLocation());
-        String jsonValidUsers = new Gson().toJson(appointment.getValidUsers());
-        String jsonInvalidUsers = new Gson().toJson(appointment.getInvalidUsers());
-
-        params.put("location", jsonLocation);
-        params.put("validUsers", jsonValidUsers);
-        params.put("invalidUsers", jsonInvalidUsers);
-
-        new PostApiTask<Appointment>("appointment/add", params, apiCallback, AppointmentResponse.class).execute();
+        new PostApiTask<Appointment>("appointment/add", body, apiCallback, AppointmentResponse.class).execute();
     }
 
     // appointment/delete
@@ -97,18 +92,52 @@ public class ServiceGateway {
             params.put("longitude", Double.toString(location.getLongitude()));
         }
 
-        new PostApiTask<Boolean>("appointment/sync?appointmentId=" + appointmentId + "isLight=" + Boolean.toString(isLight), params, apiCallback, BooleanResponse.class).execute();
+        new PostApiTask<Boolean>("appointment/sync?appointmentId=" + appointmentId + "isLight=" + Boolean.toString(isLight), params, apiCallback, SyncResponse.class).execute();
     }
 
     private static class GetApiTask<T> extends ApiTask<T> {
         public GetApiTask(String relativeUrl, ApiCallback apiCallback, Class deserializationClass){
-            super(relativeUrl, RestMethod.GET, null, apiCallback, deserializationClass);
+            super(relativeUrl, RestMethod.GET, null, apiCallback, deserializationClass, false);
         }
     }
 
     private static class PostApiTask<T> extends ApiTask<T> {
+        public PostApiTask(String relativeUrl, Object postBody, ApiCallback apiCallback, Class deserializationClass){
+            super(relativeUrl, RestMethod.POST, serialize(postBody), apiCallback, deserializationClass, true);
+        }
+
         public PostApiTask(String relativeUrl, HashMap<String, String> postParams, ApiCallback apiCallback, Class deserializationClass){
-            super(relativeUrl, RestMethod.POST, postParams, apiCallback, deserializationClass);
+            super(relativeUrl, RestMethod.POST, getQuery(postParams), apiCallback, deserializationClass, false);
+        }
+
+        private static String serialize(Object postBody) {
+            try {
+                return postBody != null ? new Gson().toJson(postBody) : "{}";
+            } catch (Exception e) {
+                return "{}";
+            }
+        }
+
+        private static String getQuery(HashMap<String, String> params) {
+            StringBuilder result = new StringBuilder();
+
+            try {
+                boolean first = true;
+
+                for (String key : params.keySet()) {
+                    if (first)
+                        first = false;
+                    else
+                        result.append("&");
+
+                    result.append(URLEncoder.encode(key, "UTF-8"));
+                    result.append("=");
+                    result.append(URLEncoder.encode(params.get(key), "UTF-8"));
+                }
+            }
+            catch (Exception e){}
+
+            return result.toString();
         }
     }
 
@@ -123,13 +152,15 @@ public class ServiceGateway {
         private ApiCallback apiCallback;
         private RestMethod method;
         private Class deserializationClass;
-        private HashMap<String, String> postParams;
+        private String postBody;
+        private boolean jsonBody;
 
-        protected ApiTask(String relativeUrl, RestMethod method, @Nullable HashMap<String, String> postParams, ApiCallback apiCallback, Class deserializationClass) {
+        protected ApiTask(String relativeUrl, RestMethod method, @Nullable String postBody, ApiCallback apiCallback, Class deserializationClass, boolean jsonBody) {
             this.relativeUrl = relativeUrl;
             this.apiCallback = apiCallback;
             this.method = method;
-            this.postParams = postParams;
+            this.postBody = postBody;
+            this.jsonBody = jsonBody;
             this.deserializationClass = deserializationClass;
         }
 
@@ -172,6 +203,8 @@ public class ServiceGateway {
             try {
                 URL url = new URL(baseAPI + relativeUrl);
                 con = (HttpURLConnection) url.openConnection();
+                if(jsonBody)
+                    con.setRequestProperty("Content-Type", "application/json");
                 con.setRequestMethod("POST");
 
                 con.setDoOutput(true);
@@ -180,7 +213,7 @@ public class ServiceGateway {
                 OutputStream os = con.getOutputStream();
                 BufferedWriter writer = new BufferedWriter(
                         new OutputStreamWriter(os, "UTF-8"));
-                writer.write(getQuery(postParams));
+                writer.write(postBody);
                 writer.flush();
                 writer.close();
                 os.close();
@@ -204,25 +237,6 @@ public class ServiceGateway {
             }
 
             return result;
-        }
-
-        private String getQuery(HashMap<String, String> params) throws UnsupportedEncodingException {
-            StringBuilder result = new StringBuilder();
-            boolean first = true;
-
-            for (String key : params.keySet())
-            {
-                if (first)
-                    first = false;
-                else
-                    result.append("&");
-
-                result.append(URLEncoder.encode(key, "UTF-8"));
-                result.append("=");
-                result.append(URLEncoder.encode(params.get(key), "UTF-8"));
-            }
-
-            return result.toString();
         }
 
         @Override

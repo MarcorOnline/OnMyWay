@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 public class Location
 {
     private String title = "";
-    private String address = "";
     private double latitude = 0;
     private double longitude = 0;
 
@@ -20,16 +19,6 @@ public class Location
     public void setTitle(String title)
     {
         this.title = title;
-    }
-
-    public String getAddress()
-    {
-        return address;
-    }
-
-    public void setAddress(String address)
-    {
-        this.address = address;
     }
 
     public double getLatitude()

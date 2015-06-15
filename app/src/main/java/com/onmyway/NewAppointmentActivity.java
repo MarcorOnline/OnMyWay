@@ -41,6 +41,7 @@ import com.onmyway.model.Appointment;
 import com.onmyway.model.GlobalData;
 import com.onmyway.model.Location;
 import com.onmyway.model.User;
+import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ContactsHelper;
 import com.onmyway.utils.LocationHelper;
@@ -80,7 +81,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     static SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
-    private static Appointment newAppointment = new Appointment();
+    private static Appointment newAppointment;
 
     //invited adapter
     private InvitedAdapter invitedAdapter;
@@ -100,6 +101,11 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_appointment);
+
+        ActivityHelper.changeActionBarColor(this);
+
+        newAppointment = new Appointment();
+        //TODO si dovrebbe recuperare da savedInstanceState nel caso di sospensione dell'app (get...)
 
         //GET UI items
         locationView = (AutoCompleteTextView) findViewById(R.id.locationBox);
@@ -190,6 +196,13 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
         GPlayClient = lh.getGoogleApiClient(this, this, this, true);
         GPlayClient.connect();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+
+        //TODO salvare per poter riprendere in caso di sospensione (put...)
     }
 
     @Override
@@ -340,23 +353,45 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
             uploadTask = true;
             showProgress(true);
 
-            ServiceGateway.UploadAppointmentAsync(GlobalData.getLoggedUser().getPhoneNumber(), newAppointment, new ApiCallback<AppointmentResponse>() {
-                @Override
-                public void OnComplete(AppointmentResponse result) {
-                    showProgress(false);
-                    uploadTask = false;
+            User loggedUser = GlobalData.getLoggedUser();
 
-                    if (result.Data != null && !StringUtils.isNullOrWhiteSpaces(result.Data.getId()))
-                    {
-                        //SUCCESS
-                        GlobalData.getAppointments().add(result.Data);
-                        getParent().finish();
-                    }
-                    else
-                        showToast("Error: unable to create the event", true);
-                }
-            });
+            if (loggedUser != null)
+                makeUpload();
+            else
+                loginAndContinue();
         }
+    }
+
+    private void loginAndContinue(){
+        ServiceGateway.LoginAsync(ActivityHelper.getCurrentPhoneNumber(this), new ApiCallback<UserResponse>() {
+            @Override
+            public void OnComplete(UserResponse result) {
+                if (result != null && result.Data != null) {
+                    GlobalData.setLoggedUser(result.Data);
+                    makeUpload();
+                } else
+                    loginAndContinue();
+            }
+        });
+    }
+
+    private void makeUpload(){
+        ServiceGateway.UploadAppointmentAsync(GlobalData.getLoggedUser().getPhoneNumber(), newAppointment, new ApiCallback<AppointmentResponse>() {
+            @Override
+            public void OnComplete(AppointmentResponse result) {
+                showProgress(false);
+                uploadTask = false;
+
+                if (result.Data != null && !StringUtils.isNullOrWhiteSpaces(result.Data.getId()))
+                {
+                    //SUCCESS
+                    GlobalData.getAppointments().add(result.Data);
+                    getParent().finish();
+                }
+                else
+                    showToast("Error: unable to create the event", true);
+            }
+        });
     }
 
     private void showToast(String message, boolean shortDuration){
@@ -365,7 +400,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     }
 
     /**
-     * Shows the progress UI and hides the login form.
+     * Shows the progress UI and hides the loginAndContinue form.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     public void showProgress(final boolean show) {

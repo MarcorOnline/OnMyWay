@@ -4,10 +4,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.telephony.TelephonyManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,8 +23,12 @@ import com.onmyway.model.GlobalData;
 import com.onmyway.model.User;
 import com.onmyway.responses.AppointmentsPreviewResponse;
 import com.onmyway.responses.UserResponse;
+import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ServiceGateway;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 
@@ -44,14 +48,15 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ActivityHelper.changeActionBarColor(this);
+
         setContentView(R.layout.activity_main);
 
         progressView = findViewById(R.id.progress);
         normalView = findViewById(R.id.appointmentsList);
 
-        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        String phoneNumber = tm.getLine1Number();
-        autoLogin(phoneNumber);
+        autoLogin(ActivityHelper.getCurrentPhoneNumber(this));
 
         ListView lv = (ListView) findViewById(R.id.appointmentsList);
         appointmentsAdapter = new AppointmentsAdapter(this, GlobalData.getAppointments());
@@ -201,11 +206,11 @@ public class MainActivity extends ActionBarActivity {
 
             ((TextView) convertView.findViewById(R.id.itemTitle)).setText(a.getTitle());
 
-            ((TextView) convertView.findViewById(R.id.itemDateTime)).setText("data");
-            ((TextView) convertView.findViewById(R.id.itemLocation)).setText("location");
+            DateTimeFormatter formatter = org.joda.time.format.DateTimeFormat.shortDateTime();
+            String formattedDateTime = formatter.print(new DateTime(a.getStartDateTime()));
 
-            //((TextView)convertView.findViewById(R.id.itemDateTime)).setText(a.getDateTime().toString());
-            //((TextView)convertView.findViewById(R.id.itemLocation)).setText(a.getLocation().toString());
+            ((TextView) convertView.findViewById(R.id.itemDateTime)).setText(formattedDateTime);
+            ((TextView) convertView.findViewById(R.id.itemLocation)).setText(a.getLocation().getTitle());
 
             return convertView;
         }
