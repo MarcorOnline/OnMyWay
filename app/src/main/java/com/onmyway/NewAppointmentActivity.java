@@ -196,7 +196,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        GPlayClient = lh.getGoogleApiClient(this, this, this, true);
+        GPlayClient = lh.getGoogleApiClient(this, this, this);
         GPlayClient.connect();
     }
 
