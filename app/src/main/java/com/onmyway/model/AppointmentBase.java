@@ -6,13 +6,14 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Comparator;
 
 /**
  * Created by Marco on 14/05/2015.
  */
-public class AppointmentBase {
+public class AppointmentBase implements Serializable {
     private String id;
     private String title;
     private Location location;

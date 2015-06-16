@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.onmyway.model.Appointment;
 import com.onmyway.model.GlobalData;
+import com.onmyway.model.Notification;
 import com.onmyway.model.User;
 import com.onmyway.model.UserStatus;
 import com.onmyway.responses.AppointmentResponse;
@@ -35,14 +36,14 @@ import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ContactsHelper;
 import com.onmyway.utils.LocationHelper;
+import com.onmyway.utils.NotificationsHelper;
 import com.onmyway.utils.ServiceGateway;
 import com.onmyway.utils.StringUtils;
 
 import java.util.HashMap;
 
 
-public class MapActivity extends ActionBarActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks
-{
+public class MapActivity extends ActionBarActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
     private static String appointmentId;
     private static GoogleMap map;
     private static HashMap<String, Marker> markers = new HashMap<>();
@@ -75,16 +76,14 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_map, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
+    public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -95,8 +94,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         {
             startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
             return true;
-        }
-        else if (id == R.id.action_status){
+        } else if (id == R.id.action_status) {
             DialogFragment dialog = new StatusDialog();
             dialog.show(getFragmentManager(), "StatusDialog");
         }
@@ -108,20 +106,17 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map) {
         this.map = map;
 
-        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<AppointmentResponse>()
-        {
+        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<AppointmentResponse>() {
             @Override
-            public void OnComplete(AppointmentResponse result)
-            {
+            public void OnComplete(AppointmentResponse result) {
                 appointment = result.Data;
                 InitMap(result.Data);
             }
         });
     }
 
-    private void InitMap(Appointment appointment)
-    {
-        ContactsHelper.ResolveContactsNames(this, appointment.getValidUsers());
+    private void InitMap(Appointment appointment) {
+        ContactsHelper.resolveContactsNames(this, appointment.getValidUsers());
 
         //primo draw, devo disegnare l'appuntamento
         Marker appointMarker = map.addMarker(new MarkerOptions()
@@ -149,7 +144,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         }
     }
 
-    private void RefreshMarkersAndSendPosition()
+    private void SynchronizeAll()
     {
         if (markers.size() > 0) {
             User user = GlobalData.getLoggedUser();
@@ -158,15 +153,23 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
             ServiceGateway.SynchronizeForeground(appointmentId, user.getPhoneNumber(), user.getStatus(), location, new ApiCallback<SyncResponse>() {
                 @Override
                 public void OnComplete(SyncResponse result) {
-                    Marker userMarker;
+                    if(result != null) {
+                        Marker userMarker;
 
-                    if (result.AttendeeStates != null)
-                        for (UserStatus user : result.AttendeeStates) {
-                            //L'utente ha gia un marker, lo aggiorno
-                            userMarker = markers.get(user.getPhoneNumber());
-                            userMarker.setTitle(user.getStatus());
-                            userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
-                        }
+                        if (result.AttendeeStates != null)
+                            for (UserStatus user : result.AttendeeStates) {
+                                //L'utente ha gia un marker, lo aggiorno
+                                userMarker = markers.get(user.getPhoneNumber());
+                                userMarker.setTitle(user.getStatus());
+                                userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
+                            }
+
+                        String myPhoneNumber = GlobalData.getLoggedUser().getPhoneNumber();
+
+                        if(result.Notifications != null)
+                            for (Notification n : result.Notifications)
+                                NotificationsHelper.ShowDialog(n, myPhoneNumber, getApplicationContext());
+                    }
                 }
             });
         }
@@ -180,7 +183,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     Runnable mStatusChecker = new Runnable() {
         @Override
         public void run() {
-            RefreshMarkersAndSendPosition();
+            SynchronizeAll();
             mapUpdater.postDelayed(mStatusChecker, mInterval);
         }
     };

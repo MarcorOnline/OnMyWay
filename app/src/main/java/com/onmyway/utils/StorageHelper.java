@@ -11,10 +11,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class StorageHelper {
-    private static void write(Context context, Object toWrite, String fileName){
+    private static void write(Context context, Serializable toWrite, String fileName){
         try {
             FileOutputStream stream = context.openFileOutput(fileName, Context.MODE_PRIVATE);
             ObjectOutputStream objectStream = new ObjectOutputStream(stream);
@@ -23,7 +24,6 @@ public class StorageHelper {
             stream.close();
         }
         catch (Exception e){
-            e.printStackTrace();
         }
     }
 
@@ -38,7 +38,6 @@ public class StorageHelper {
             return o;
         }
         catch (Exception e){
-            e.printStackTrace();
             return null;
         }
     }

@@ -46,8 +46,7 @@
         </activity>
 
         <receiver android:name=".services.AlarmReceiver" />
-
-        <service android:name=".services.SynchronizeService" />
+        <service android:name=".services.SynchronizeService" android:exported="false" />
 
         <activity
             android:name=".SettingsActivity"

@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class ContactsHelper {
 
-    public static void ResolveContactsNames(ContextWrapper context, List<User> users) {
+    public static void resolveContactsNames(ContextWrapper context, List<User> users) {
 
         ContentResolver contentResolver = context.getContentResolver();
 
@@ -28,7 +28,7 @@ public class ContactsHelper {
         }
     }
 
-    private static String getContactDisplayNameByNumber(ContentResolver contentResolver, String number) {
+    public static String getContactDisplayNameByNumber(ContentResolver contentResolver, String number) {
         String name = "";
 
         Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(number));

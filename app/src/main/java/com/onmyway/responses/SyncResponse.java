@@ -10,6 +10,7 @@ import java.util.ArrayList;
  * Created by Marco on 20/05/2015.
  */
 public class SyncResponse extends BaseRestResponse {
+    public String AppointmentId;
     public ArrayList<UserStatus> AttendeeStates;
     public ArrayList<Notification> Notifications;
 }

@@ -76,9 +76,9 @@ public class MainActivity extends ActionBarActivity {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent inte = new Intent(getApplicationContext(), MapActivity.class);
-                inte.putExtra("appointmentId", appointmentsAdapter.appointments.get(i).getId());
-                startActivity(inte);
+                Intent intent = new Intent(getApplicationContext(), MapActivity.class);
+                intent.putExtra("appointmentId", appointmentsAdapter.appointments.get(i).getId());
+                startActivity(intent);
             }
         });
     }

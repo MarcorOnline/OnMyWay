@@ -20,7 +20,7 @@ public class SchedulerHelper {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
 
         AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        int interval = 60000;   //60 seconds
+        int interval = 30000;   //60 seconds
 
         manager.setRepeating(AlarmManager.RTC_WAKEUP, startTime.getTimeInMillis(), interval, pendingIntent);
 

@@ -2,10 +2,12 @@ package com.onmyway.model;
 
 import android.support.annotation.Nullable;
 
+import java.io.Serializable;
+
 /**
  * Created by Marco on 14/05/2015.
  */
-public class Location
+public class Location implements Serializable
 {
     private String title = "";
     private double latitude = 0;
