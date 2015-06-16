@@ -2,6 +2,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".NewAppointmentActivity">
     <item android:id="@+id/action_confirm" android:title="@string/confirm"
-        android:icon="@drawable/confirm"
+        android:icon="@drawable/ic_done_black_48dp"
         android:orderInCategory="100" app:showAsAction="always" />
 </menu>

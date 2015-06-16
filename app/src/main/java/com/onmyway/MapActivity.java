@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -15,7 +17,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.onmyway.model.Appointment;
 import com.onmyway.model.GlobalData;
-import com.onmyway.model.Location;
 import com.onmyway.model.User;
 import com.onmyway.model.UserStatus;
 import com.onmyway.responses.AppointmentResponse;
@@ -23,43 +24,43 @@ import com.onmyway.responses.SyncResponse;
 import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.ContactsHelper;
+import com.onmyway.utils.LocationHelper;
 import com.onmyway.utils.ServiceGateway;
 import com.onmyway.utils.StringUtils;
 
 import java.util.HashMap;
 
 
-public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
+public class MapActivity extends ActionBarActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks
 {
     private static String appointmentId;
     private static GoogleMap map;
     private static HashMap<String, Marker> markers = new HashMap<>();
+    private GoogleApiClient gClient;
+    private LocationHelper lh;
 
     private Appointment appointment;
+
+    private android.support.v7.widget.Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        ActivityHelper.changeActionBarColor(this);
+        toolbar = ActivityHelper.setActionBar(this);
+
+        lh = new LocationHelper();
+        gClient = lh.getGoogleApiClient(this, this, this);
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         appointmentId = getIntent().getStringExtra("appointmentId");
+    }
 
-        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<AppointmentResponse>()
-        {
-            @Override
-            public void OnComplete(AppointmentResponse result)
-            {
-                appointment = result.Data;
-                InitMap(result.Data);
-            }
-        });
-
-        mapUpdater = new Handler();
+    @Override
+    public void onConnected(Bundle bundle) {
         startRepeatingTask();
     }
 
@@ -92,10 +93,15 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map) {
         this.map = map;
 
-//        this.map.addMarker(new MarkerOptions()
-//                .position(new LatLng(0, 0))
-//                .title("Marker"))
-//                .setIcon(BitmapDescriptorFactory.fromResource(R.drawable.Destination));
+        ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<AppointmentResponse>()
+        {
+            @Override
+            public void OnComplete(AppointmentResponse result)
+            {
+                appointment = result.Data;
+                InitMap(result.Data);
+            }
+        });
     }
 
     private void InitMap(Appointment appointment)
@@ -128,24 +134,27 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         }
     }
 
-    private void Refresh()
+    private void RefreshMarkersAndSendPosition()
     {
-        User user = GlobalData.getLoggedUser();
-        Location location = null;  //TODO prendere con LocationHelper
+        if (markers.size() > 0) {
+            User user = GlobalData.getLoggedUser();
+            LatLng location = lh.getLocation();
 
-        ServiceGateway.SynchronizeForeground(appointmentId, user.getPhoneNumber(), user.getStatus(), location, new ApiCallback<SyncResponse>() {
-            @Override
-            public void OnComplete(SyncResponse result) {
-                Marker userMarker;
+            ServiceGateway.SynchronizeForeground(appointmentId, user.getPhoneNumber(), user.getStatus(), location, new ApiCallback<SyncResponse>() {
+                @Override
+                public void OnComplete(SyncResponse result) {
+                    Marker userMarker;
 
-                if (result.AttendeeStates != null)
-                    for (UserStatus user : result.AttendeeStates) {
-                        //L'utente ha gia un marker, lo aggiorno
-                        userMarker = markers.get(user.getPhoneNumber());
-                        userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude())); //TODO update status
-                    }
-            }
-        });
+                    if (result.AttendeeStates != null)
+                        for (UserStatus user : result.AttendeeStates) {
+                            //L'utente ha gia un marker, lo aggiorno
+                            userMarker = markers.get(user.getPhoneNumber());
+                            userMarker.setTitle(user.getStatus());
+                            userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
+                        }
+                }
+            });
+        }
     }
 
 
@@ -156,16 +165,28 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     Runnable mStatusChecker = new Runnable() {
         @Override
         public void run() {
-            Refresh();
+            RefreshMarkersAndSendPosition();
             mapUpdater.postDelayed(mStatusChecker, mInterval);
         }
     };
 
     void startRepeatingTask() {
+        mapUpdater = new Handler();
         mStatusChecker.run();
     }
 
     void stopRepeatingTask() {
-        mapUpdater.removeCallbacks(mStatusChecker);
+        if (mapUpdater != null)
+            mapUpdater.removeCallbacks(mStatusChecker);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 }

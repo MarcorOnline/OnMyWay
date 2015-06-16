@@ -97,12 +97,14 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
     // Autocomplete utils
     private PlaceAutocompleteAdapter mAdapter;
 
+    private android.support.v7.widget.Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_appointment);
 
-        ActivityHelper.changeActionBarColor(this);
+        toolbar = ActivityHelper.setActionBar(this);
 
         newAppointment = new Appointment();
         //TODO si dovrebbe recuperare da savedInstanceState nel caso di sospensione dell'app (get...)

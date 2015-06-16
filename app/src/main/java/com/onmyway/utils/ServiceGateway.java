@@ -3,6 +3,7 @@ package com.onmyway.utils;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.onmyway.model.*;
 import com.onmyway.requests.UploadAppointmentRequest;
@@ -70,17 +71,28 @@ public class ServiceGateway {
         new GetApiTask<Appointment>("appointment/get?appointmentId=" + appointmentId, apiCallback, AppointmentResponse.class).execute();
     }
 
+    //user/update
+    public static void UpdateUser(String phoneNumber, String status, String avatar, ApiCallback<BooleanResponse> apiCallback){
+        HashMap<String, String> params = new HashMap<>();
 
-    public static void SynchronizeForeground(String appointmentId, String phoneNumber, String status, @Nullable Location location, ApiCallback<SyncResponse> apiCallback) {
+        params.put("phoneNumber", phoneNumber);
+        params.put("status", status);
+        params.put("avatar", avatar);
+
+        new PostApiTask<Boolean>("user/update", params, apiCallback, SyncResponse.class).execute();
+    }
+
+
+    public static void SynchronizeForeground(String appointmentId, String phoneNumber, String status, @Nullable LatLng location, ApiCallback<SyncResponse> apiCallback) {
         Synchronize(false, appointmentId, phoneNumber, status, location, apiCallback);
     }
 
-    public static void SynchronizeBackground(String appointmentId, String phoneNumber, @Nullable Location location, String status, ApiCallback<SyncResponse> apiCallback) {
+    public static void SynchronizeBackground(String appointmentId, String phoneNumber, @Nullable LatLng location, String status, ApiCallback<SyncResponse> apiCallback) {
         Synchronize(true, appointmentId, phoneNumber, status, location, apiCallback);
     }
 
     // appointment/sync
-    private static void Synchronize(boolean isLight, String appointmentId, String phoneNumber, String status, @Nullable Location location, ApiCallback<SyncResponse> apiCallback){
+    private static void Synchronize(boolean isLight, String appointmentId, String phoneNumber, String status, @Nullable LatLng location, ApiCallback<SyncResponse> apiCallback){
         HashMap<String, String> params = new HashMap<>();
 
         params.put("phoneNumber", phoneNumber);
@@ -88,8 +100,8 @@ public class ServiceGateway {
 
         if (location != null)
         {
-            params.put("latitude", Double.toString(location.getLatitude()));
-            params.put("longitude", Double.toString(location.getLongitude()));
+            params.put("latitude", Double.toString(location.latitude));
+            params.put("longitude", Double.toString(location.longitude));
         }
 
         new PostApiTask<Boolean>("appointment/sync?appointmentId=" + appointmentId + "isLight=" + Boolean.toString(isLight), params, apiCallback, SyncResponse.class).execute();

@@ -5,19 +5,28 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+
+import com.onmyway.R;
 
 /**
  * Created by Marco on 15/06/2015.
  */
 public class ActivityHelper {
-    public static String getCurrentPhoneNumber(Activity activity)
+    public static String getCurrentPhoneNumber(Context context)
     {
-        TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
-        return tm.getLine1Number();
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        String phoneNumber = tm.getLine1Number();
+
+        PreferencesHelper.setPhoneNumber(context, phoneNumber);
+
+        return phoneNumber;
     }
 
-    public static void changeActionBarColor(ActionBarActivity activity){
-        //activity.getActionBar().setBackgroundDrawable(new ColorDrawable(Color.parseColor("#0000ff")));
+    public static Toolbar setActionBar(ActionBarActivity activity){
+        Toolbar toolbar = (Toolbar)activity.findViewById(R.id.toolbar);
+        activity.setSupportActionBar(toolbar);
+        return toolbar;
     }
 }

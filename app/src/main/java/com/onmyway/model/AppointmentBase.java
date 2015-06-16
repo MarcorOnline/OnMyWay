@@ -7,6 +7,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.Calendar;
+import java.util.Comparator;
 
 /**
  * Created by Marco on 14/05/2015.
@@ -113,5 +114,13 @@ public class AppointmentBase {
     {
         trackTime.set(trackDate.get(Calendar.YEAR), trackDate.get(Calendar.MONTH), trackDate.get(Calendar.DAY_OF_MONTH));
         trackingDateTime = trackTime;
+    }
+
+    public static class TrackingTimeComparator implements Comparator<AppointmentBase> {
+
+        @Override
+        public int compare(AppointmentBase lhs, AppointmentBase rhs) {
+            return lhs.getTrackingDateTime().compareTo(rhs.getTrackingDateTime());
+        }
     }
 }

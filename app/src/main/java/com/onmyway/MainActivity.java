@@ -2,12 +2,16 @@ package com.onmyway;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,20 +21,26 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.onmyway.model.AppointmentBase;
 import com.onmyway.model.GlobalData;
 import com.onmyway.model.User;
 import com.onmyway.responses.AppointmentsPreviewResponse;
 import com.onmyway.responses.UserResponse;
+import com.onmyway.services.AlarmReceiver;
 import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
+import com.onmyway.utils.SchedulerHelper;
 import com.onmyway.utils.ServiceGateway;
+import com.onmyway.utils.StorageHelper;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -45,13 +55,15 @@ public class MainActivity extends ActionBarActivity {
     //adapter
     private AppointmentsAdapter appointmentsAdapter;
 
+    private Toolbar toolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ActivityHelper.changeActionBarColor(this);
-
         setContentView(R.layout.activity_main);
+
+        toolbar = ActivityHelper.setActionBar(this);
 
         progressView = findViewById(R.id.progress);
         normalView = findViewById(R.id.appointmentsList);
@@ -167,13 +179,19 @@ public class MainActivity extends ActionBarActivity {
 
                     if (result != null) {
                         for(AppointmentBase appointment : result.Data)
-                        {
-                            //unformat dates
-                            appointment.calendarsFromStrings();
-                        }
+                            appointment.calendarsFromStrings();     //unformat dates
 
                         ArrayList<AppointmentBase> oldAppointments = GlobalData.getAppointments();
                         oldAppointments.clear();
+
+                        StorageHelper.writeAppointments(MainActivity.this, result.Data);
+
+                        //find the first appointments to track
+                        AppointmentBase earlyTrackAppointment = Collections.min(result.Data, new AppointmentBase.TrackingTimeComparator());
+
+                        SchedulerHelper.cancelAlarmService(MainActivity.this);
+                        SchedulerHelper.scheduleAlarmService(MainActivity.this, earlyTrackAppointment.getTrackingDateTime());
+
                         oldAppointments.addAll(result.Data);
 
                         appointmentsAdapter.notifyDataSetChanged();

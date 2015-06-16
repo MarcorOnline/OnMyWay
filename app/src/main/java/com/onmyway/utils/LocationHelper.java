@@ -1,5 +1,6 @@
 package com.onmyway.utils;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -29,21 +30,23 @@ public class LocationHelper
     private Marker userMarker;
     private GoogleApiClient GPlayClient;
 
-    public GoogleApiClient getGoogleApiClient(FragmentActivity activity, GoogleApiClient.ConnectionCallbacks connectionCallback, GoogleApiClient.OnConnectionFailedListener connectionFailed, boolean withAutocomplete)
+    public GoogleApiClient getGoogleApiClient(Context context, GoogleApiClient.ConnectionCallbacks connectionCallback, GoogleApiClient.OnConnectionFailedListener connectionFailed)
     {
-        GoogleApiClient.Builder builder = new GoogleApiClient.Builder(activity);
-
-        builder.addConnectionCallbacks(connectionCallback)
+        GPlayClient = new GoogleApiClient.Builder(context).addConnectionCallbacks(connectionCallback)
                 .addOnConnectionFailedListener(connectionFailed)
-                .addApi(LocationServices.API);
+                .addApi(LocationServices.API)
+                .build();
 
-        if (withAutocomplete) {
-            //autocomplete
-            builder.addApi(Places.GEO_DATA_API)
-                    .enableAutoManage(activity, 1, connectionFailed);
-        }
+        return GPlayClient;
+    }
 
-        GPlayClient = builder.build();
+    public GoogleApiClient getGoogleApiClientWithAutocomplete(FragmentActivity activity, GoogleApiClient.ConnectionCallbacks connectionCallback, GoogleApiClient.OnConnectionFailedListener connectionFailed)
+    {
+        GPlayClient = new GoogleApiClient.Builder(activity).addConnectionCallbacks(connectionCallback)
+                .addOnConnectionFailedListener(connectionFailed)
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .enableAutoManage(activity, 1, connectionFailed).build();
 
         return GPlayClient;
     }
