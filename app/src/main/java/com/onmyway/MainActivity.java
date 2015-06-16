@@ -206,15 +206,12 @@ public class MainActivity extends ActionBarActivity {
 
     public class AppointmentsAdapter extends ArrayAdapter {
         private LayoutInflater inflater;
-        private Context context;
         private ArrayList<AppointmentBase> appointments;
 
         public AppointmentsAdapter(Context context, ArrayList<AppointmentBase> appointments) {
             super(context, R.layout.appointment_list_item, appointments);
 
-            this.context = context;
             this.appointments = appointments;
-
             this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 

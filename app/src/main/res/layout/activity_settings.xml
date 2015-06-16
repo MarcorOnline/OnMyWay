@@ -21,17 +21,27 @@
             android:text="Avatar"
             android:textSize="25sp"/>
 
+    <LinearLayout
+        android:layout_marginLeft="10dp"
+        android:orientation="vertical"
+        android:layout_below="@+id/toolbar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:id="@+id/avatar"
+            android:onClick="imageClickListener"
+            android:layout_gravity="center"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="(tap to change)"/>
+            android:text="(tap to change)"
+            android:layout_gravity="center"
+            android:layout_below="@+id/avatar"/>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/avatar"
-            android:onClick="imageClickListener"
-            android:maxWidth="100dp"
-            android:maxHeight="100dp"/>
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

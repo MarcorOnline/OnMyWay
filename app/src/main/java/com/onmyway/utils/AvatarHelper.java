@@ -29,6 +29,11 @@ public class AvatarHelper
     public static final String FEMALE9 = "FEMALE9";
     public static final String FEMALE10 = "FEMALE10";
 
+    public static final String[] AVATARS = {
+            MALE1, MALE2, MALE3, MALE4, MALE5, MALE6, MALE7, MALE8, MALE9, MALE10,
+            FEMALE1, FEMALE2, FEMALE3, FEMALE4, FEMALE5, FEMALE6, FEMALE7, FEMALE8, FEMALE9, FEMALE10
+    };
+
     public static int GetDrawableAvatarFromString(String avatar){
         switch(avatar){
             default:
