@@ -3,6 +3,7 @@ package com.onmyway;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -92,7 +93,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
-            //TODO open settings
+            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
             return true;
         }
         else if (id == R.id.action_status){

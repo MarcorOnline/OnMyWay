@@ -99,14 +99,12 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_add) {
-            Intent i = new Intent(getApplicationContext(), NewAppointmentActivity.class);
-            startActivity(i);
-
+            startActivity(new Intent(getApplicationContext(), NewAppointmentActivity.class));
             return true;
         }
         else if(id == R.id.action_settings)
         {
-            //TODO open settings
+            startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
             return true;
         }
 
