@@ -34,8 +34,6 @@ public class SettingsActivity extends ActionBarActivity
         User user = GlobalData.getLoggedUser();
         if (user != null)
             avatarView.setImageResource(AvatarHelper.GetDrawableAvatarFromString(user.getAvatar()));
-
-
     }
 
     public void imageClickListener(View v) {
