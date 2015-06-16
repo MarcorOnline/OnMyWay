@@ -377,7 +377,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
         });
     }
 
-    private void makeUpload(){
+    private void makeUpload() {
         ServiceGateway.UploadAppointmentAsync(GlobalData.getLoggedUser().getPhoneNumber(), newAppointment, new ApiCallback<AppointmentResponse>() {
             @Override
             public void OnComplete(AppointmentResponse result) {

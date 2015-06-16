@@ -51,7 +51,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
     @Override
     public void onConnected(Bundle bundle) {
         try {
-            Toast.makeText(context, "Connected", Toast.LENGTH_SHORT);
+            Toast.makeText(context, "Background connected", Toast.LENGTH_SHORT).show();
 
             LatLng location = lh.getLocation();
 
@@ -96,6 +96,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
             }
         }
         catch(Exception e){
+            Toast.makeText(context, "Background error", Toast.LENGTH_SHORT).show();
             this.stopSelf();
         }
     }

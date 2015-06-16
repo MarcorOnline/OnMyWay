@@ -1,10 +1,18 @@
 package com.onmyway;
 
+import android.app.Dialog;
+import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -20,6 +28,7 @@ import com.onmyway.model.GlobalData;
 import com.onmyway.model.User;
 import com.onmyway.model.UserStatus;
 import com.onmyway.responses.AppointmentResponse;
+import com.onmyway.responses.BooleanResponse;
 import com.onmyway.responses.SyncResponse;
 import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
@@ -83,7 +92,12 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
+            //TODO open settings
             return true;
+        }
+        else if (id == R.id.action_status){
+            DialogFragment dialog = new StatusDialog();
+            dialog.show(getFragmentManager(), "StatusDialog");
         }
 
         return super.onOptionsItemSelected(item);
@@ -188,5 +202,58 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
+    }
+
+    private void showToast(String message, boolean shortDuration){
+        Toast toast = Toast.makeText(this, message, shortDuration ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    public static class StatusDialog extends DialogFragment
+    {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            // Get the layout inflater
+            final LayoutInflater inflater = getActivity().getLayoutInflater();
+
+            View dialogView = inflater.inflate(R.layout.input_dialog, null);
+            final EditText inputText = (EditText)dialogView.findViewById(R.id.inputText);
+
+            // Inflate and set the layout for the dialog
+            // Pass null as the parent view because its going in the dialog layout
+            builder.setView(dialogView)
+                    // Add action buttons
+                    .setPositiveButton(R.string.confirm, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                            //update user status
+                            User user = GlobalData.getLoggedUser();
+                            user.setStatus(inputText.getText().toString());
+
+                            ServiceGateway.UpdateUser(user.getPhoneNumber(), user.getStatus(), user.getAvatar(), new ApiCallback<BooleanResponse>() {
+                                @Override
+                                public void OnComplete(BooleanResponse result) {
+                                    String message;
+
+                                    if(result.Data)
+                                        message = "Status updated";
+                                    else
+                                        message = "Status update error";
+
+                                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                            StatusDialog.this.getDialog().dismiss();
+                        }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            StatusDialog.this.getDialog().cancel();
+                        }
+                    });
+            return builder.create();
+        }
     }
 }

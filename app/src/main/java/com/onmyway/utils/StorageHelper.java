@@ -13,9 +13,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-/**
- * Created by Marco on 16/06/2015.
- */
 public class StorageHelper {
     private static void write(Context context, Object toWrite, String fileName){
         try {
@@ -25,7 +22,9 @@ public class StorageHelper {
             objectStream.close();
             stream.close();
         }
-        catch (Exception e){ }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     private static Object read(Context context, String fileName){
@@ -39,6 +38,7 @@ public class StorageHelper {
             return o;
         }
         catch (Exception e){
+            e.printStackTrace();
             return null;
         }
     }

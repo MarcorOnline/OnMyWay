@@ -104,6 +104,11 @@ public class MainActivity extends ActionBarActivity {
 
             return true;
         }
+        else if(id == R.id.action_settings)
+        {
+            //TODO open settings
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
