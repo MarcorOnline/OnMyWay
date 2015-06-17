@@ -2,6 +2,8 @@ package com.onmyway.model;
 
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.io.Serializable;
 
 /**
@@ -50,5 +52,10 @@ public class Location implements Serializable
         this.title = title;
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public LatLng toLatLng()
+    {
+        return new LatLng(latitude, longitude);
     }
 }

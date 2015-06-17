@@ -1,5 +1,7 @@
 package com.onmyway.model;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by Marco on 14/05/2015.
  */
@@ -31,6 +33,11 @@ public class UserStatus {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public LatLng getLatLng()
+    {
+        return new LatLng(latitude, longitude);
     }
 
     public String getPhoneNumber()

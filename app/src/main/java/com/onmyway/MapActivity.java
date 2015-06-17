@@ -5,7 +5,12 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.LevelListDrawable;
+import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -35,6 +40,7 @@ import com.onmyway.responses.BooleanResponse;
 import com.onmyway.responses.SyncResponse;
 import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
+import com.onmyway.utils.AvatarHelper;
 import com.onmyway.utils.ContactsHelper;
 import com.onmyway.utils.LocationHelper;
 import com.onmyway.utils.NotificationsHelper;
@@ -72,6 +78,13 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         appointmentId = getIntent().getStringExtra("appointmentId");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        stopRepeatingTask();
     }
 
     @Override
@@ -122,20 +135,13 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         });
     }
 
-    private void InitMap(Appointment appointment) {
+    private void InitMap(Appointment appointment)
+    {
         ContactsHelper.resolveContactsNames(this, appointment.getValidUsers());
 
         DateTimeFormatter formatter = org.joda.time.format.DateTimeFormat.shortTime();
         String formattedTime = formatter.print(new DateTime(appointment.getStartDateTime()));
-        String appointMarkerTitle = appointment.getLocation().getTitle() + "\n" + formattedTime;
-
-        //primo draw, devo disegnare l'appuntamento
-        Marker appointMarker = map.addMarker(new MarkerOptions()
-                .position(new LatLng(appointment.getLocation().getLatitude(), appointment.getLocation().getLongitude()))
-                .title(appointMarkerTitle)
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination)));
-
-        markers.put(appointment.getId(), appointMarker);
+        String appointMarkerTitle = appointment.getLocation().getTitle();
 
         Marker userMarker;
         String userLabel;
@@ -147,12 +153,40 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
             //L'utente non ha un marker, lo creo
             userMarker = map.addMarker(new MarkerOptions()
-                    .position(new LatLng(user.getLatitude(), user.getLongitude()))
-                    .title(userLabel)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination))); //TODO avatar
+                            .position(user.getLatLng())
+                            .title(userLabel)
+                            .snippet(user.getStatus())
+                            .icon(BitmapDescriptorFactory.fromBitmap(getResizedBitmap(AvatarHelper.GetDrawableAvatarFromString(user.getAvatar()), null, null)))
+            );
 
             markers.put(appointment.getId(), userMarker);
         }
+
+        LatLng appointPosition = appointment.getLocation().toLatLng();
+
+        //primo draw, devo disegnare l'appuntamento
+        Marker appointMarker = map.addMarker(new MarkerOptions()
+                .position(appointPosition)
+                .title(appointMarkerTitle)
+                .snippet(formattedTime)
+                .icon(BitmapDescriptorFactory.fromBitmap(getResizedBitmap(R.drawable.destination, null, null))));
+
+        markers.put(appointment.getId(), appointMarker);
+
+        lh.centerMap(map, appointPosition);
+    }
+
+    private Bitmap getResizedBitmap(int resourceId, @Nullable Integer width, @Nullable Integer height)
+    {
+        if (width == null)
+            width = 75;
+
+        if (height == null)
+            height = 75;
+
+        BitmapDrawable bd = (BitmapDrawable) getResources().getDrawable(resourceId);
+        Bitmap b = bd.getBitmap();
+        return Bitmap.createScaledBitmap(b, width, height, false);
     }
 
     private void SynchronizeAll()
@@ -172,7 +206,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                                 //L'utente ha gia un marker, lo aggiorno
                                 userMarker = markers.get(user.getPhoneNumber());
                                 userMarker.setTitle(user.getStatus());
-                                userMarker.setPosition(new LatLng(user.getLatitude(), user.getLongitude()));
+                                userMarker.setPosition(user.getLatLng());
                             }
 
                         String myPhoneNumber = GlobalData.getLoggedUser().getPhoneNumber();
@@ -217,11 +251,6 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
-    }
-
-    private void showToast(String message, boolean shortDuration){
-        Toast toast = Toast.makeText(this, message, shortDuration ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG);
-        toast.show();
     }
 
     public static class StatusDialog extends DialogFragment

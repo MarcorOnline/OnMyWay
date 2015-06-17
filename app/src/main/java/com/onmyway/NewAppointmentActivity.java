@@ -222,9 +222,9 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
         LatLngBounds bounds = null;
 
-        if (userLocation != null) {
-            lh.centerMap(map, userLocation);
-
+        if (userLocation != null)
+        {
+            lh.drawPushPin(map, userLocation, true);
             bounds = new LatLngBounds(new LatLng(userLocation.latitude - 0.18, userLocation.longitude - 0.29), new LatLng(userLocation.latitude + 0.18, userLocation.longitude + 0.29));
         }
 
@@ -565,7 +565,7 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
             // Get the Place object from the buffer.
             Place place = places.get(0);
-            lh.centerMap(map, place.getLatLng());
+            lh.drawPushPin(map, place.getLatLng(), true);
 
             String address = "";
             if (place.getAddress() != null)
