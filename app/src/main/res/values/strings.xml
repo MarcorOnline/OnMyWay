@@ -27,5 +27,5 @@
     <string name="delete_with_space">"Delete "</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="NoAppointsText">You have no appointments yet :( Tap on the \'add\' icon, create a new one and invite your friends!</string>
+    <string name="NoAppointsText">You have no appointments yet :(\n\nTap on the \'add\' icon, create a new one and invite your friends!</string>
 </resources>

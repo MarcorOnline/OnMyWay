@@ -15,19 +15,23 @@ import com.onmyway.model.Notification;
 
 import java.util.Random;
 
-public class NotificationsHelper {
+public class NotificationsHelper
+{
     private static final Random random = new Random();
     private static final String placeholder = "$user";
 
-    public static void ShowNotificationInNotificationCenter(Notification n, Context context, String myPhoneNumber, String appointmentId){
+    public static void ShowNotificationInNotificationCenter(Notification n, Context context, String myPhoneNumber, String appointmentId)
+    {
         //prepare notification title and content
         String title;
         String content;
 
-        if (n.getSubjectPhoneNumber().equals(myPhoneNumber)) {
+        if (n.getSubjectPhoneNumber().equals(myPhoneNumber))
+        {
             title = n.getTitle();
             content = n.getContent();
-        } else {
+        } else
+        {
             String userName = ContactsHelper.getContactDisplayNameByNumber(
                     context.getContentResolver(),
                     n.getSubjectPhoneNumber());
@@ -46,7 +50,8 @@ public class NotificationsHelper {
                         .setContentTitle(title)
                         .setContentText(content);
 
-        switch (n.getType()) {
+        switch (n.getType())
+        {
             case Notification.TYPE_Normal:
                 break;
 
@@ -72,19 +77,22 @@ public class NotificationsHelper {
         mBuilder.setContentIntent(notificationPendingIntent);
 
         int mNotificationId = random.nextInt();
-        NotificationManager mNotifyMgr = (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
+        NotificationManager mNotifyMgr = (NotificationManager) context.getSystemService(context.NOTIFICATION_SERVICE);
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
 
-    public static void ShowDialog(Notification n, String myPhoneNumber, Activity context){
+    public static void ShowDialog(Notification n, String myPhoneNumber, Activity context)
+    {
         //prepare notification title and content
         String title;
         String content;
 
-        if (n.getSubjectPhoneNumber().equals(myPhoneNumber)) {
+        if (n.getSubjectPhoneNumber().equals(myPhoneNumber))
+        {
             title = n.getTitle();
             content = n.getContent();
-        } else {
+        } else
+        {
             String userName = ContactsHelper.getContactDisplayNameByNumber(
                     context.getContentResolver(),
                     n.getSubjectPhoneNumber());
@@ -96,9 +104,11 @@ public class NotificationsHelper {
             content = n.getContent().replace(placeholder, userName);
         }
 
-        MessageHelper.showDialog(context, title, content, new DialogInterface.OnClickListener() {
+        MessageHelper.showDialog(context, title, content, new DialogInterface.OnClickListener()
+        {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(DialogInterface dialog, int which)
+            {
                 dialog.dismiss();
             }
         });
