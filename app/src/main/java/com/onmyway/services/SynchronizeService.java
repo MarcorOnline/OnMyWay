@@ -1,26 +1,19 @@
 package com.onmyway.services;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.LatLng;
-import com.onmyway.MapActivity;
-import com.onmyway.R;
 import com.onmyway.model.AppointmentBase;
 import com.onmyway.model.Notification;
 import com.onmyway.responses.SyncResponse;
 import com.onmyway.utils.ApiCallback;
-import com.onmyway.utils.ContactsHelper;
 import com.onmyway.utils.LocationHelper;
 import com.onmyway.utils.NotificationsHelper;
 import com.onmyway.utils.PreferencesHelper;
@@ -105,7 +98,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
 
                                     if (result != null && result.Notifications != null && result.Notifications.size() > 0) {
                                         for (Notification n : result.Notifications) {
-                                            NotificationsHelper.ShowNotification(n, context, myPhoneNumber, result.AppointmentId);
+                                            NotificationsHelper.ShowNotificationInNotificationCenter(n, context, myPhoneNumber, result.AppointmentId);
                                         }
                                     }
 

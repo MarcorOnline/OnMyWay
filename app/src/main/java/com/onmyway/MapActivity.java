@@ -1,5 +1,6 @@
 package com.onmyway;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
@@ -178,7 +179,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
                         if(result.Notifications != null)
                             for (Notification n : result.Notifications)
-                                NotificationsHelper.ShowDialog(n, myPhoneNumber, getApplicationContext());
+                                NotificationsHelper.ShowDialog(n, myPhoneNumber, MapActivity.this);
                     }
                 }
             });
@@ -225,6 +226,14 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
     public static class StatusDialog extends DialogFragment
     {
+        private Activity parentActivity;
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            parentActivity = activity;
+        }
+
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -233,6 +242,10 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
             View dialogView = inflater.inflate(R.layout.input_dialog, null);
             final EditText inputText = (EditText)dialogView.findViewById(R.id.inputText);
+
+            //riempio con lo stato attuale
+            if (GlobalData.getLoggedUser().getStatus() != null)
+                inputText.setText(GlobalData.getLoggedUser().getStatus());
 
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
@@ -250,12 +263,12 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                                 public void OnComplete(BooleanResponse result) {
                                     String message;
 
-                                    if(result.Data)
+                                    if (result != null && result.Data)
                                         message = "Status updated";
                                     else
                                         message = "Status update error";
 
-                                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(parentActivity, message, Toast.LENGTH_SHORT).show();
                                 }
                             });
 

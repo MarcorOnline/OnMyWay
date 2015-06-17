@@ -19,4 +19,7 @@
     <string name="cancel">Cancel</string>
 
     <string name="choose_avatar">Choose your avatar</string>
+    <string name="ok_button">OK</string>
+    <string name="unable_to_login">Unable to login</string>
+    <string name="ok_to_retry">Press ok to retry</string>
 </resources>

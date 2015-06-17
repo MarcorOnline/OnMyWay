@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
@@ -31,9 +32,12 @@ import com.onmyway.responses.UserResponse;
 import com.onmyway.services.AlarmReceiver;
 import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
+import com.onmyway.utils.MessageHelper;
+import com.onmyway.utils.NotificationsHelper;
 import com.onmyway.utils.SchedulerHelper;
 import com.onmyway.utils.ServiceGateway;
 import com.onmyway.utils.StorageHelper;
+import com.onmyway.utils.StringUtils;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -164,12 +168,21 @@ public class MainActivity extends ActionBarActivity {
                         loginTask = false;
                         showProgress(false);
 
-                        if (result != null) {
+                        if (result != null && result.Data != null && !StringUtils.isNullOrWhiteSpaces(result.Data.getPhoneNumber())) {
                             GlobalData.setLoggedUser(result.Data);
                             downloadAppointments();
                         }
                         else {
-                            autoLogin(phoneNumber);
+                            MessageHelper.ShowDialog(MainActivity.this,
+                                    getString(R.string.unable_to_login),
+                                    getString(R.string.ok_to_retry),
+                                    new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    autoLogin(phoneNumber);
+                                }
+                            });
                         }
                     }
                 });

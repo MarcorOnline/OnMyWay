@@ -1,5 +1,6 @@
 package com.onmyway.utils;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -19,7 +20,7 @@ public class NotificationsHelper {
     private static final Random random = new Random();
     private static final String placeholder = "$user";
 
-    public static void ShowNotification(Notification n, Context context, String myPhoneNumber, String appointmentId){
+    public static void ShowNotificationInNotificationCenter(Notification n, Context context, String myPhoneNumber, String appointmentId){
         //prepare notification title and content
         String title;
         String content;
@@ -76,7 +77,7 @@ public class NotificationsHelper {
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
 
-    public static void ShowDialog(Notification n, String myPhoneNumber, Context context){
+    public static void ShowDialog(Notification n, String myPhoneNumber, Activity context){
         //prepare notification title and content
         String title;
         String content;
@@ -96,16 +97,11 @@ public class NotificationsHelper {
             content = n.getContent().replace(placeholder, userName);
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setMessage(content)
-                .setTitle(title)
-  //              .setCancelable(false)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        //do things
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
+        MessageHelper.ShowDialog(context, title, content, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
     }
 }
