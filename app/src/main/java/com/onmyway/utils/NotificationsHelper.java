@@ -52,8 +52,7 @@ public class NotificationsHelper
 
         switch (n.getType())
         {
-            case Notification.TYPE_Normal:
-                break;
+            //TODO non funziona il colore
 
             case Notification.TYPE_Urgent:
                 mBuilder.setColor(Color.YELLOW);

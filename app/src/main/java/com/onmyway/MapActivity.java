@@ -61,6 +61,9 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     private GoogleApiClient gClient;
     private LocationHelper lh;
 
+    private boolean isGClientConnected = false;
+    private boolean isMapReady = false;
+
     private Appointment appointment;
 
     private android.support.v7.widget.Toolbar toolbar;
@@ -75,6 +78,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
 
         lh = new LocationHelper();
         gClient = lh.getGoogleApiClient(this, this, this);
+        gClient.connect();
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -93,7 +97,19 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     @Override
     public void onConnected(Bundle bundle)
     {
-        startRepeatingTask();
+        isGClientConnected = true;
+        if(isMapReady)
+            autoLogin();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap map)
+    {
+        this.map = map;
+
+        isMapReady = true;
+        if (isGClientConnected)
+            autoLogin();
     }
 
     @Override
@@ -126,18 +142,12 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onMapReady(GoogleMap map)
-    {
-        this.map = map;
-
-        autoLogin(ActivityHelper.getCurrentPhoneNumber(this));
-    }
-
     private boolean loginTask = false;
 
-    private void autoLogin(final String phoneNumber)
+    private void autoLogin()
     {
+        String phoneNumber = ActivityHelper.getCurrentPhoneNumber(this);
+
         if (GlobalData.getLoggedUser() == null)
         {
             if (!loginTask)
@@ -166,14 +176,15 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                                         public void onClick(DialogInterface dialog, int which)
                                         {
                                             dialog.dismiss();
-                                            autoLogin(phoneNumber);
+                                            autoLogin();
                                         }
                                     });
                         }
                     }
                 });
             }
-        } else
+        }
+        else
         {
             getFullAppointment();
         }
@@ -191,6 +202,9 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                     getSupportActionBar().setTitle(result.Data.getTitle());
                     appointment = result.Data;
                     InitMap(result.Data);
+
+                    //start periodic task
+                    startRepeatingTask();
                 }
             }
         });
@@ -265,23 +279,23 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                 @Override
                 public void OnComplete(SyncResponse result)
                 {
-                    if (result != null)
+                    if (result != null && result.Data != null)
                     {
                         Marker userMarker;
 
-                        if (result.AttendeeStates != null)
-                            for (UserStatus user : result.AttendeeStates)
+                        if (result.Data.AttendeeStates != null)
+                            for (UserStatus user : result.Data.AttendeeStates)
                             {
                                 //L'utente ha gia un marker, lo aggiorno
                                 userMarker = markers.get(user.getPhoneNumber());
-                                userMarker.setTitle(user.getStatus());
+                                userMarker.setSnippet(user.getStatus());
                                 userMarker.setPosition(user.getLatLng());
                             }
 
                         String myPhoneNumber = GlobalData.getLoggedUser().getPhoneNumber();
 
-                        if (result.Notifications != null)
-                            for (Notification n : result.Notifications)
+                        if (result.Data.Notifications != null)
+                            for (Notification n : result.Data.Notifications)
                                 NotificationsHelper.ShowDialog(n, myPhoneNumber, MapActivity.this);
                     }
                 }
@@ -289,9 +303,9 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         }
     }
 
-
-    private int mInterval = 3000; // aggiorna ogni 3 secondi
-    //private int mInterval = 30000; // aggiorna ogni 30 secondi
+    //TODO in produzione mettere 20 secondi
+    private int mInterval = 5000; // aggiorna ogni 5 secondi
+    //private int mInterval = 20000; // aggiorna ogni 20 secondi
     private Handler mapUpdater;
 
     Runnable mStatusChecker = new Runnable()

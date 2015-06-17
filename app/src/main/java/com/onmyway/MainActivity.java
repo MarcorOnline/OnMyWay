@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -294,7 +295,7 @@ public class MainActivity extends ActionBarActivity
             ((TextView) convertView.findViewById(R.id.itemDateTime)).setText(formattedDateTime);
             ((TextView) convertView.findViewById(R.id.itemLocation)).setText(a.getLocation().getTitle());
 
-            ImageButton delButton = (ImageButton) convertView.findViewById(R.id.delete_button);
+            Button delButton = (Button) convertView.findViewById(R.id.delete_button);
             delButton.setTag(a);
 
             delButton.setOnClickListener(new DeleteClickListener());

@@ -70,13 +70,13 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
                     {
                         Collections.sort(appointments, new AppointmentBase.TrackingTimeComparator());
 
-                        Calendar start = Calendar.getInstance();
+                        Calendar now = Calendar.getInstance();
                         Calendar end = Calendar.getInstance();
-                        end.add(Calendar.MINUTE, 30);
+                        end.add(Calendar.MINUTE, -30);
 
                         final ArrayList<AppointmentBase> toSync = new ArrayList<>();
                         for (AppointmentBase a : appointments) {
-                            if (a.getTrackingDateTime().compareTo(start) == 1 && a.getStartDateTime().compareTo(end) == -1) {
+                            if (a.getTrackingDateTime().compareTo(now) == -1 && a.getStartDateTime().compareTo(end) == 1) {
                                 toSync.add(a);
                             }
                         }
@@ -96,9 +96,9 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
                                 public void OnComplete(SyncResponse result) {
                                     Context context = getApplicationContext();
 
-                                    if (result != null && result.Notifications != null && result.Notifications.size() > 0) {
-                                        for (Notification n : result.Notifications) {
-                                            NotificationsHelper.ShowNotificationInNotificationCenter(n, context, myPhoneNumber, result.AppointmentId);
+                                    if (result != null && result.Data.Notifications != null && result.Data.Notifications.size() > 0) {
+                                        for (Notification n : result.Data.Notifications) {
+                                            NotificationsHelper.ShowNotificationInNotificationCenter(n, context, myPhoneNumber, result.Data.AppointmentId);
                                         }
                                     }
 

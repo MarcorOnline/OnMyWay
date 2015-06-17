@@ -4,9 +4,10 @@ package com.onmyway.model;
  * Created by Marco on 08/06/2015.
  */
 public class Notification {
-    public static final int TYPE_Normal = 0;
+    public static final int TYPE_None = 0;
     public static final int TYPE_Urgent = 1;
     public static final int TYPE_VeryUrgent = 2;
+    public static final int TYPE_Arrived = 3;
 
     public String title;
     public String content;

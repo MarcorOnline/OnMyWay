@@ -104,7 +104,7 @@ public class ServiceGateway {
             params.put("longitude", Double.toString(location.longitude));
         }
 
-        new PostApiTask<Boolean>("appointment/sync?appointmentId=" + appointmentId + "isLight=" + Boolean.toString(isLight), params, apiCallback, SyncResponse.class).execute();
+        new PostApiTask<Boolean>("appointment/sync?appointmentId=" + appointmentId + "&isLight=" + Boolean.toString(isLight), params, apiCallback, SyncResponse.class).execute();
     }
 
     private static class GetApiTask<T> extends ApiTask<T> {
