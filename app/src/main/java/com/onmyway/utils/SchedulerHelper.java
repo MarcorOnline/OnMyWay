@@ -20,7 +20,7 @@ public class SchedulerHelper {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
 
         AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        int interval = 30000;   //60 seconds
+        int interval = 30000;   //30 seconds
 
         manager.setRepeating(AlarmManager.RTC_WAKEUP, startTime.getTimeInMillis(), interval, pendingIntent);
 
@@ -33,8 +33,5 @@ public class SchedulerHelper {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
         AlarmManager manager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         manager.cancel(pendingIntent);
-
-        //TODO togliere
-        Toast.makeText(context, "Canceled", Toast.LENGTH_SHORT).show();
     }
 }

@@ -79,7 +79,7 @@ public class ServiceGateway {
         params.put("status", status);
         params.put("avatar", avatar);
 
-        new PostApiTask<Boolean>("user/update", params, apiCallback, SyncResponse.class).execute();
+        new PostApiTask<Boolean>("user/update", params, apiCallback, BooleanResponse.class).execute();
     }
 
 

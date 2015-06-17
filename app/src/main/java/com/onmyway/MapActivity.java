@@ -109,8 +109,11 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
         ServiceGateway.GetFullAppointmentAsync(appointmentId, new ApiCallback<AppointmentResponse>() {
             @Override
             public void OnComplete(AppointmentResponse result) {
-                appointment = result.Data;
-                InitMap(result.Data);
+                if (result.Data != null) {
+                    getSupportActionBar().setTitle(result.Data.getTitle());
+                    appointment = result.Data;
+                    InitMap(result.Data);
+                }
             }
         });
     }

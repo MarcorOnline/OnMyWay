@@ -57,6 +57,8 @@ public class MainActivity extends ActionBarActivity {
 
     private Toolbar toolbar;
 
+    private int lastSize = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,8 +69,6 @@ public class MainActivity extends ActionBarActivity {
 
         progressView = findViewById(R.id.progress);
         normalView = findViewById(R.id.appointmentsList);
-
-        autoLogin(ActivityHelper.getCurrentPhoneNumber(this));
 
         ListView lv = (ListView) findViewById(R.id.appointmentsList);
         appointmentsAdapter = new AppointmentsAdapter(this, GlobalData.getAppointments());
@@ -81,6 +81,12 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        autoLogin(ActivityHelper.getCurrentPhoneNumber(this));
     }
 
     @Override
@@ -144,6 +150,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void autoLogin(String phoneNumber) {
+        if (GlobalData.getAppointments().size() != lastSize)
+            appointmentsAdapter.notifyDataSetChanged();
 
         if (GlobalData.getLoggedUser() == null) {
             if (!loginTask) {
@@ -196,6 +204,7 @@ public class MainActivity extends ActionBarActivity {
                         SchedulerHelper.scheduleAlarmService(MainActivity.this, earlyTrackAppointment.getTrackingDateTime());
 
                         oldAppointments.addAll(result.Data);
+                        lastSize = oldAppointments.size();
 
                         appointmentsAdapter.notifyDataSetChanged();
                     }
