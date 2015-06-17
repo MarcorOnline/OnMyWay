@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -176,13 +177,15 @@ public class MainActivity extends ActionBarActivity {
                             MessageHelper.ShowDialog(MainActivity.this,
                                     getString(R.string.unable_to_login),
                                     getString(R.string.ok_to_retry),
-                                    new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    autoLogin(phoneNumber);
-                                }
-                            });
+                                    new DialogInterface.OnClickListener()
+                                    {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which)
+                                        {
+                                            dialog.dismiss();
+                                            autoLogin(phoneNumber);
+                                        }
+                                    });
                         }
                     }
                 });
@@ -197,6 +200,7 @@ public class MainActivity extends ActionBarActivity {
         if (user != null && !getAppointmentsTask) {
             getAppointmentsTask = true;
             showProgress(true);
+            final LinearLayout noappoints = (LinearLayout)findViewById(R.id.noappointsview);
 
             ServiceGateway.GetAppointmentsPreviewAsync(user.getPhoneNumber(), new ApiCallback<AppointmentsPreviewResponse>() {
                 @Override
@@ -204,7 +208,8 @@ public class MainActivity extends ActionBarActivity {
                     getAppointmentsTask = false;
                     showProgress(false);
 
-                    if (result != null) {
+                    if (result != null && result.Data != null && result.Data.size() > 0) {
+                        noappoints.setVisibility(View.INVISIBLE);
                         for(AppointmentBase appointment : result.Data)
                             appointment.calendarsFromStrings();     //unformat dates
 
@@ -223,6 +228,10 @@ public class MainActivity extends ActionBarActivity {
                         lastSize = oldAppointments.size();
 
                         appointmentsAdapter.notifyDataSetChanged();
+                    }
+                    else
+                    {
+                        noappoints.setVisibility(View.VISIBLE);
                     }
                 }
             });

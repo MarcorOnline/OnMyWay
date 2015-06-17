@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OnMyWay</string>
+    <string name="NoAppointsText">Non hai ancora nessun appuntamento :( Premi sul bottone 'aggiungi', creane uno nuovo ed invita i tuoui amici!</string>
+    <string name="action_confirm">Fatto</string>
+    <string name="action_settings">Impostazioni</string>
+    <string name="add">Aggiungi</string>
+    <string name="appointmentDateAndTime">Data ed ora dell'appuntamento</string>
+    <string name="cancel">Annulla</string>
+    <string name="choose_avatar">Scegli il tuo avatar</string>
+    <string name="confirm">Fatto</string>
+    <string name="insert_your_status">Inserisci il tuo stato</string>
+    <string name="invitedFriends">Amici invitati</string>
+    <string name="location">Luogo</string>
+    <string name="minutes_lower">minuti</string>
+    <string name="missing_title">Devi inserire un titolo</string>
+    <string name="ok_to_retry">Premi ok per riprovare</string>
+    <string name="startLocalizationAt">Inizia localizzazione alle</string>
+    <string name="status">Stato</string>
+    <string name="title">Titolo</string>
+    <string name="title_activity_map">Appuntamento</string>
+    <string name="title_activity_new_appointment">Nuovo appuntamento</string>
+    <string name="title_activity_settings">Impostazioni</string>
+    <string name="unable_to_login">Impossibile effettuare il login</string>
+</resources>

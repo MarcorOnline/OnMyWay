@@ -13,13 +13,14 @@
     <string name="missing_title">You must insert a title</string>
 
     <string name="insert_your_status">Insert your status</string>
-    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="title_activity_settings">Settings</string>
 
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
 
     <string name="choose_avatar">Choose your avatar</string>
-    <string name="ok_button">OK</string>
+    <string name="ok_button" translatable="false">OK</string>
     <string name="unable_to_login">Unable to login</string>
     <string name="ok_to_retry">Press ok to retry</string>
+    <string name="NoAppointsText">You have no appointments yet :( Tap on the \'add\' icon, create a new one and invite your friends!</string>
 </resources>
