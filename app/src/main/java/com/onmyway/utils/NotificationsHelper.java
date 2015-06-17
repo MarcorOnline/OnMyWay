@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
-import android.support.v7.app.AlertDialog;
 
 import com.onmyway.MapActivity;
 import com.onmyway.R;
@@ -97,7 +96,7 @@ public class NotificationsHelper {
             content = n.getContent().replace(placeholder, userName);
         }
 
-        MessageHelper.ShowDialog(context, title, content, new DialogInterface.OnClickListener() {
+        MessageHelper.showDialog(context, title, content, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();

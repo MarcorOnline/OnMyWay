@@ -2,13 +2,9 @@ package com.onmyway;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.app.Activity;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -21,20 +17,21 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.onmyway.model.Appointment;
 import com.onmyway.model.AppointmentBase;
 import com.onmyway.model.GlobalData;
 import com.onmyway.model.User;
 import com.onmyway.responses.AppointmentsPreviewResponse;
+import com.onmyway.responses.BooleanResponse;
 import com.onmyway.responses.UserResponse;
-import com.onmyway.services.AlarmReceiver;
 import com.onmyway.utils.ActivityHelper;
 import com.onmyway.utils.ApiCallback;
 import com.onmyway.utils.MessageHelper;
-import com.onmyway.utils.NotificationsHelper;
 import com.onmyway.utils.SchedulerHelper;
 import com.onmyway.utils.ServiceGateway;
 import com.onmyway.utils.StorageHelper;
@@ -45,7 +42,6 @@ import org.joda.time.format.DateTimeFormatter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -174,7 +170,7 @@ public class MainActivity extends ActionBarActivity {
                             downloadAppointments();
                         }
                         else {
-                            MessageHelper.ShowDialog(MainActivity.this,
+                            MessageHelper.showDialog(MainActivity.this,
                                     getString(R.string.unable_to_login),
                                     getString(R.string.ok_to_retry),
                                     new DialogInterface.OnClickListener()
@@ -264,7 +260,63 @@ public class MainActivity extends ActionBarActivity {
             ((TextView) convertView.findViewById(R.id.itemDateTime)).setText(formattedDateTime);
             ((TextView) convertView.findViewById(R.id.itemLocation)).setText(a.getLocation().getTitle());
 
+            ImageButton delButton = (ImageButton)convertView.findViewById(R.id.delete_button);
+            delButton.setTag(a);
+
+            delButton.setOnClickListener(new DeleteClickListener());
+
             return convertView;
+        }
+
+        public class DeleteClickListener implements View.OnClickListener {
+
+            @Override
+            public void onClick(View v) {
+                final AppointmentBase appointment = (AppointmentBase)v.getTag();
+                User user = GlobalData.getLoggedUser();
+                String message;
+
+                if (user.getPhoneNumber().equals(appointment.getAuthorPhoneNumber()))
+                    message = getString(R.string.sure_to_delete);
+                else
+                    message = getString(R.string.sure_to_leave);
+
+                MessageHelper.showDialogWithTwoButtons(MainActivity.this,
+                        getString(R.string.delete_with_space) + appointment.getTitle(),
+                        message,
+                        getString(R.string.yes),
+                        getString(R.string.no),
+                        //yes
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+
+                                showProgress(true);
+
+                                User user = GlobalData.getLoggedUser();
+                                ServiceGateway.RemoveAppointmentAsync(user.getPhoneNumber(), appointment.getId(), new ApiCallback<BooleanResponse>() {
+                                    @Override
+                                    public void OnComplete(BooleanResponse result) {
+                                        try {
+                                            GlobalData.getAppointments().remove(appointment);
+                                        } catch (Exception e) {
+                                        }
+
+                                        showProgress(false);
+                                        appointmentsAdapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        },
+                        //no
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+            }
         }
     }
 }

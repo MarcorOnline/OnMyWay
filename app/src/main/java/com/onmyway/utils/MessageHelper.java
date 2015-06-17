@@ -12,16 +12,32 @@ import com.onmyway.R;
  * Created by Marco on 17/06/2015.
  */
 public class MessageHelper {
-    private void showToast(Context context, String message, boolean shortDuration){
+    public static void showToast(Context context, String message, boolean shortDuration){
         Toast.makeText(context, message, shortDuration ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
     }
 
-    public static void ShowDialog(Activity context, String title, String message, DialogInterface.OnClickListener onClickListener){
+    public static void showDialog(Activity context, String title, String message, DialogInterface.OnClickListener onClickListener){
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setMessage(message)
                 .setTitle(title)
                 .setCancelable(false)
                 .setPositiveButton(context.getString(R.string.ok_button), onClickListener);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    public static void showDialogWithTwoButtons(Activity context, String title, String message,
+                                                String positiveButton,
+                                                String negativeButton,
+                                                DialogInterface.OnClickListener positiveClickListener,
+                                                DialogInterface.OnClickListener negativeClickListener)
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setMessage(message)
+                .setTitle(title)
+                .setCancelable(false)
+                .setPositiveButton(positiveButton, positiveClickListener)
+                .setNegativeButton(negativeButton, negativeClickListener);
         AlertDialog alert = builder.create();
         alert.show();
     }

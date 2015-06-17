@@ -157,7 +157,7 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
                             getFullAppointment();
                         } else
                         {
-                            MessageHelper.ShowDialog(MapActivity.this,
+                            MessageHelper.showDialog(MapActivity.this,
                                     getString(R.string.unable_to_login),
                                     getString(R.string.ok_to_retry),
                                     new DialogInterface.OnClickListener()

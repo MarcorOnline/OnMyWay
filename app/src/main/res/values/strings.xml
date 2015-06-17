@@ -22,5 +22,10 @@
     <string name="ok_button" translatable="false">OK</string>
     <string name="unable_to_login">Unable to login</string>
     <string name="ok_to_retry">Press ok to retry</string>
+    <string name="sure_to_delete">Are you sure to delete this appointment?</string>
+    <string name="sure_to_leave">Are you sure to leave this appointment?</string>
+    <string name="delete_with_space">"Delete "</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="NoAppointsText">You have no appointments yet :( Tap on the \'add\' icon, create a new one and invite your friends!</string>
 </resources>
