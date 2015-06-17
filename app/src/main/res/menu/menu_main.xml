@@ -7,7 +7,7 @@
         android:icon="@drawable/ic_settings_black_48dp"
         android:title="@string/action_settings"
         android:orderInCategory="100"
-        app:showAsAction="always"
+        app:showAsAction="never"
         />
 
     <item android:id="@+id/action_add" android:title="@string/add"

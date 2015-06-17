@@ -4,11 +4,10 @@
       tools:context="com.onmyway.MapActivity">
 
     <item android:id="@+id/action_settings"
-            android:icon="@drawable/ic_settings_black_48dp"
-          android:title="@string/action_settings"
-          android:orderInCategory="100"
-        app:showAsAction="always"
-        />
+        android:icon="@drawable/ic_settings_black_48dp"
+        android:title="@string/action_settings"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
 
       <item android:id="@+id/action_status" android:title="@string/status"
           android:icon="@drawable/ic_textsms_black_48dp"
