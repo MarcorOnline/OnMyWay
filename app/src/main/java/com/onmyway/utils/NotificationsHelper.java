@@ -24,7 +24,7 @@ public class NotificationsHelper {
         String title;
         String content;
 
-        if (n.getSubjectPhoneNumber() == myPhoneNumber) {
+        if (n.getSubjectPhoneNumber().equals(myPhoneNumber)) {
             title = n.getTitle();
             content = n.getContent();
         } else {
@@ -81,7 +81,7 @@ public class NotificationsHelper {
         String title;
         String content;
 
-        if (n.getSubjectPhoneNumber() == myPhoneNumber) {
+        if (n.getSubjectPhoneNumber().equals(myPhoneNumber)) {
             title = n.getTitle();
             content = n.getContent();
         } else {

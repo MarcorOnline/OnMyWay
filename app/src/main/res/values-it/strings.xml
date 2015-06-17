@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OnMyWay</string>
-    <string name="NoAppointsText">Non hai ancora nessun appuntamento :( Premi sul bottone 'aggiungi', creane uno nuovo ed invita i tuoui amici!</string>
+    <string name="NoAppointsText">Non hai ancora nessun appuntamento :( Premi sul bottone \'aggiungi\', creane uno nuovo ed invita i tuoui amici!</string>
     <string name="action_confirm">Fatto</string>
     <string name="action_settings">Impostazioni</string>
     <string name="add">Aggiungi</string>
-    <string name="appointmentDateAndTime">Data ed ora dell'appuntamento</string>
+    <string name="appointmentDateAndTime">Data ed ora dell\'appuntamento</string>
     <string name="cancel">Annulla</string>
     <string name="choose_avatar">Scegli il tuo avatar</string>
     <string name="confirm">Fatto</string>
