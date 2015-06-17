@@ -149,7 +149,7 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    private void autoLogin(String phoneNumber) {
+    private void autoLogin(final String phoneNumber) {
         if (GlobalData.getAppointments().size() != lastSize)
             appointmentsAdapter.notifyDataSetChanged();
 
@@ -167,6 +167,9 @@ public class MainActivity extends ActionBarActivity {
                         if (result != null) {
                             GlobalData.setLoggedUser(result.Data);
                             downloadAppointments();
+                        }
+                        else {
+                            autoLogin(phoneNumber);
                         }
                     }
                 });

@@ -198,13 +198,21 @@ public class NewAppointmentActivity extends ActionBarActivity  implements OnMapR
 
         GPlayClient = lh.getGoogleApiClient(this, this, this);
         GPlayClient.connect();
+
+        if(savedInstanceState != null){
+            try {
+                titleView.setText(savedInstanceState.getString("titleView"));
+                //TODO recuperare il resto
+            }catch (Exception e){}
+        }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
 
-        //TODO salvare per poter riprendere in caso di sospensione (put...)
+        state.putString("titleView", titleView.getText().toString());
+        //TODO salvare il resto
     }
 
     @Override

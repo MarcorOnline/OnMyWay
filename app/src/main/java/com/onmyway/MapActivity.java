@@ -40,6 +40,9 @@ import com.onmyway.utils.NotificationsHelper;
 import com.onmyway.utils.ServiceGateway;
 import com.onmyway.utils.StringUtils;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+
 import java.util.HashMap;
 
 
@@ -121,10 +124,14 @@ public class MapActivity extends ActionBarActivity implements OnMapReadyCallback
     private void InitMap(Appointment appointment) {
         ContactsHelper.resolveContactsNames(this, appointment.getValidUsers());
 
+        DateTimeFormatter formatter = org.joda.time.format.DateTimeFormat.shortTime();
+        String formattedTime = formatter.print(new DateTime(appointment.getStartDateTime()));
+        String appointMarkerTitle = appointment.getLocation().getTitle() + "\n" + formattedTime;
+
         //primo draw, devo disegnare l'appuntamento
         Marker appointMarker = map.addMarker(new MarkerOptions()
                 .position(new LatLng(appointment.getLocation().getLatitude(), appointment.getLocation().getLongitude()))
-                .title(appointment.getLocation().getTitle())
+                .title(appointMarkerTitle)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.destination)));
 
         markers.put(appointment.getId(), appointMarker);
