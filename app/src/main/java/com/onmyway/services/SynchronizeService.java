@@ -27,8 +27,6 @@ import java.util.Collections;
 
 public class SynchronizeService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
-    //TODO togliere tutti i Toast che parlando di Background
-
     private LocationHelper lh;
     private GoogleApiClient gClient;
     private Context context;
@@ -40,7 +38,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
 
         context = this.getBaseContext();
 
-        Toast.makeText(context, "Background started", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, "Background started", Toast.LENGTH_SHORT).show();
 
         lh = new LocationHelper();
         gClient = lh.getGoogleApiClient(context, this, this);
@@ -55,7 +53,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
     @Override
     public void onConnected(Bundle bundle) {
         try {
-            Toast.makeText(context, "Background connected", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, "Background connected", Toast.LENGTH_SHORT).show();
 
             LatLng location = lh.getLocation();
 
@@ -84,7 +82,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
                         toSyncCount = toSync.size();
 
                         if(toSyncCount == 0) {
-                            Toast.makeText(context, "Background nothing to sync", Toast.LENGTH_SHORT).show();
+                           // Toast.makeText(context, "Background nothing to sync", Toast.LENGTH_SHORT).show();
                             SynchronizeService.this.stopSelf();
                             return;
                         }
@@ -106,7 +104,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
                                         toSyncCount--;
 
                                         if (toSyncCount <= 0) {
-                                            Toast.makeText(context, "Background completed", Toast.LENGTH_SHORT).show();
+                                            //Toast.makeText(context, "Background completed", Toast.LENGTH_SHORT).show();
                                             SynchronizeService.this.stopSelf();
                                         }
                                     }
@@ -118,7 +116,7 @@ public class SynchronizeService extends Service implements GoogleApiClient.Conne
             }
         }
         catch(Exception e){
-            Toast.makeText(context, "Background error", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(context, "Background error", Toast.LENGTH_SHORT).show();
             this.stopSelf();
         }
     }

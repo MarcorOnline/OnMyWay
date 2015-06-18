@@ -23,9 +23,6 @@ public class SchedulerHelper {
         int interval = 30000;   //30 seconds
 
         manager.setRepeating(AlarmManager.RTC_WAKEUP, startTime.getTimeInMillis(), interval, pendingIntent);
-
-        //TODO togliere
-        Toast.makeText(context, "Scheduled", Toast.LENGTH_SHORT).show();
     }
 
     public static void cancelAlarmService(Context context){
