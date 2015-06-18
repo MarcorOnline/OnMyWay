@@ -43,25 +43,28 @@ public class NotificationsHelper
             content = n.getContent().replace(placeholder, userName);
         }
 
-        //create Android notification
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.icon)
-                        .setContentTitle(title)
-                        .setContentText(content);
+        int iconResource;
 
         switch (n.getType())
         {
-            //TODO non funziona il colore
-
-            case Notification.TYPE_Urgent:
-                mBuilder.setColor(Color.YELLOW);
+            default:
+            case Notification.TYPE_None:
+            case Notification.TYPE_Arrived:
+                iconResource = R.drawable.icon;
                 break;
-
+            case Notification.TYPE_Urgent:
+                iconResource = R.drawable.icon_yellow;
+                break;
             case Notification.TYPE_VeryUrgent:
-                mBuilder.setColor(Color.RED);
+                iconResource = R.drawable.icon_red;
                 break;
         }
+        //create Android notification
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(iconResource)
+                        .setContentTitle(title)
+                        .setContentText(content);
 
         //set click event
         Intent notificationIntent = new Intent(context, MapActivity.class);
